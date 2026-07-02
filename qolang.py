@@ -50,6 +50,17 @@ class tLexeme(object):
 		KWRET=enum.auto()
 		KWWHILE=enum.auto()
 
+		TYPEIU8=enum.auto()
+		TYPEIS8=enum.auto()
+		TYPEIU16=enum.auto()
+		TYPEIS16=enum.auto()
+		TYPEIU32=enum.auto()
+		TYPEIS32=enum.auto()
+		TYPEIU64=enum.auto()
+		TYPEIS64=enum.auto()
+		TYPEFP32=enum.auto()
+		TYPEFP64=enum.auto()
+
 		LITIU=enum.auto()
 		LITFP=enum.auto()
 		LITCSTR=enum.auto()
@@ -217,6 +228,16 @@ class tTokeniser(object):
 		elif self.stack == 'else': self.add(tLexeme.eType.KWELSE, self.stack, lineNum, colNum)
 		elif self.stack == 'ret': self.add(tLexeme.eType.KWRET, self.stack, lineNum, colNum)
 		elif self.stack == 'while': self.add(tLexeme.eType.KWWHILE, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU8': self.add(tLexeme.eType.TYPEIU8, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS8': self.add(tLexeme.eType.TYPEIS8, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU16': self.add(tLexeme.eType.TYPEIU16, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS16': self.add(tLexeme.eType.TYPEIS16, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU32': self.add(tLexeme.eType.TYPEIU32, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS32': self.add(tLexeme.eType.TYPEIS32, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU64': self.add(tLexeme.eType.TYPEIU64, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS64': self.add(tLexeme.eType.TYPEIS64, self.stack, lineNum, colNum)
+		elif self.stack == 'tFP32': self.add(tLexeme.eType.TYPEFP32, self.stack, lineNum, colNum)
+		elif self.stack == 'tFP64': self.add(tLexeme.eType.TYPEFP64, self.stack, lineNum, colNum)
 		else: self.add(tLexeme.eType.IDENT, self.stack, lineNum, colNum)
 		self.stack = ''
 	def strt(self):
@@ -237,8 +258,7 @@ class tTokeniser(object):
 			elif self.curr == ';':
 				while True:
 					ahdChar = self.ahd()
-					if ahdChar == '\n' or ahdChar == '':
-						break
+					if ahdChar == '\n' or ahdChar == '': break
 					self.nxt()
 			elif self.curr == '^':
 				ahdChar = self.ahd()
