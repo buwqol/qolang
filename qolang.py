@@ -50,8 +50,10 @@ class tLexeme(object):
 		KWRET=enum.auto()
 		KWWHILE=enum.auto()
 
-		NUMINT=enum.auto()
-		NUMFLOAT=enum.auto()
+		LITIU=enum.auto()
+		LITFP=enum.auto()
+		LITCSTR=enum.auto()
+		LITCHR=enum.auto()
 
 	def __init__(self, lexemeType, rawValue, lineNum, colNum, calcInt=0, calcFlt=0.0):
 		self.lexemeType = lexemeType
@@ -157,10 +159,11 @@ class tTokeniser(object):
 				else: break
 			if decimalPoint == True:
 				calcFlt = float(''.join(self.stack.split('_')))
-				self.add(tLexeme.eType.NUMFLOAT, self.stack, lineNum, colNum, calcFlt=calcFlt)
+				self.add(tLexeme.eType.LITFP, self.stack, lineNum, colNum, calcFlt=calcFlt)
+				LITCSTR=enum.auto()
 			else:
 				calcInt = int(''.join(self.stack.split('_')))
-				self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
+				self.add(tLexeme.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		elif intBase == 16:
 			while True:
 				if peekedChar.isnumeric() or peekedChar == '_' or peekedChar in ['A', 'B', 'C', 'D', 'E', 'F', 'a', 'b', 'c', 'd', 'e', 'f']:
@@ -173,7 +176,7 @@ class tTokeniser(object):
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
-			self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
+			self.add(tLexeme.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		elif intBase == 8:
 			while True:
 				if peekedChar in [str(idx) for idx in range(0, 8)] or peekedChar == '_':
@@ -186,7 +189,7 @@ class tTokeniser(object):
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
-			self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
+			self.add(tLexeme.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		elif intBase == 2:
 			while True:
 				if peekedChar == '0' or peekedChar == '1' or peekedChar == '_':
@@ -199,7 +202,7 @@ class tTokeniser(object):
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
-			self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
+			self.add(tLexeme.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		self.stack = ''
 	def ident(self):
 		lineNum = self.lineNum
@@ -325,10 +328,8 @@ class tTokeniser(object):
 					self.add(tLexeme.eType.NOTEQ, '~=')
 					self.nxt()
 				else: self.add(tLexeme.eType.NOT)
-			elif self.curr.isalpha() or self.curr == '_':
-				self.ident()
-			elif self.curr.isnumeric():
-				self.num()
+			elif self.curr.isalpha() or self.curr == '_': self.ident()
+			elif self.curr.isnumeric(): self.num()
 			else:
 				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
