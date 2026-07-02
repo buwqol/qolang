@@ -71,15 +71,16 @@ class tLexeme(object):
 		LITCSTR=enum.auto()
 		LITCHR=enum.auto()
 
-	def __init__(self, lexemeType, rawValue, lineNum, colNum, calcInt=0, calcFlt=0.0):
+	def __init__(self, lexemeType, rawValue, lineNum, colNum, calcInt=0, calcFlt=0.0, calcStr=[]):
 		self.lexemeType = lexemeType
 		self.rawValue = rawValue
 		self.lineNum = lineNum
 		self.colNum = colNum
 		self.calcInt = calcInt
 		self.calcFlt = calcFlt
+		self.calcStr = calcStr
 	def __repr__(self):
-		return f'(@{self.lineNum},{self.colNum}) {str(self.lexemeType)[6:]}: \'{self.rawValue}\' {self.calcInt}/{self.calcFlt}'
+		return f'(@{self.lineNum},{self.colNum}) {str(self.lexemeType)[6:]}: \'{self.rawValue}\' {self.calcInt}/{self.calcFlt}/{self.calcStr}'
 
 class tTokeniser(object):
 	def __init__(self, fileName):
@@ -101,14 +102,11 @@ class tTokeniser(object):
 		nextChar = self.file.read(1)
 		self.file.seek(self.lastReadByte - 1, io.SEEK_SET)
 		return nextChar
-	def add(self, lexemeType, rawValue='', lineNum=-1, colNum=-1, calcInt=0, calcFlt=0.0):
+	def add(self, lexemeType, rawValue='', lineNum=-1, colNum=-1, calcInt=0, calcFlt=0.0, calcStr=[]):
 		if lineNum == -1: lineNum = self.lineNum
 		if colNum == -1: colNum = self.colNum
 		if rawValue == '': rawValue = self.curr
-		lexeme = tLexeme(lexemeType, rawValue, lineNum, colNum)
-		lexeme.calcInt = calcInt
-		lexeme.calcFlt = calcFlt
-		self.lexemes.append(lexeme)
+		self.lexemes.append(tLexeme(lexemeType, rawValue, lineNum, colNum, calcInt=calcInt, calcFlt=calcFlt, calcStr=calcStr))
 	def num(self):
 		lineNum = self.lineNum
 		colNum = self.colNum
@@ -250,6 +248,46 @@ class tTokeniser(object):
 		elif self.stack == 'tPtr': self.add(tLexeme.eType.TYPEPTR, self.stack, lineNum, colNum)
 		else: self.add(tLexeme.eType.IDENT, self.stack, lineNum, colNum)
 		self.stack = ''
+	def cstr(self):
+		lineNum = self.lineNum
+		colNum = self.colNum
+		self.stack += self.curr
+		calcStr = []
+		ahdChar = self.ahd()
+		while ahdChar != '"':
+			if ahdChar in ['\n', '\b', '\r', '\v', '\f']:
+				print(f'ERR: Unclosed string literal @ {self.fileName}:{lineNum}:{colNum}.')
+				exit(1)
+			elif ahdChar == '\\':
+				self.nxt()
+				ahdChar = self.ahd()
+				self.stack += self.curr
+				if ahdChar == 'n': calcStr.append(ord('\n'))
+				elif ahdChar == 't': calcStr.append(ord('\t'))
+				elif ahdChar == 'r': calcStr.append(ord('\r'))
+				elif ahdChar == 'v': calcStr.append(ord('\v'))
+				elif ahdChar == '\'': calcStr.append(ord('\''))
+				elif ahdChar == '0': calcStr.append(ord('\0'))
+				elif ahdChar == 'f': calcStr.append(ord('\f'))
+				elif ahdChar == '"': calcStr.append(ord('"'))
+				elif ahdChar == 'b': calcStr.append(ord('\b'))
+				elif ahdChar == '\\': calcStr.append(ord('\\'))
+				else:
+					print(f'ERR: Unsupported escape character \'\\{self.curr}\' in string literal @ {self.fileName}:{lineNum}:{colNum}.')
+					exit(1)
+				self.nxt()
+				ahdChar = self.ahd()
+				self.stack += self.curr
+			else:
+				self.nxt()
+				ahdChar = self.ahd()
+				self.stack += self.curr
+				calcStr.append(ord(self.curr))
+		self.nxt()
+		self.stack += self.curr
+		calcStr.append(0)
+		self.add(tLexeme.eType.LITCSTR, self.stack, lineNum, colNum, calcStr=calcStr)
+		self.stack = ''
 	def strt(self):
 		while True:
 			self.nxt()
@@ -293,8 +331,7 @@ class tTokeniser(object):
 					if self.ahd() == '=':
 						self.add(tLexeme.eType.LEFTSHEQ, '<<=', self.lineNum, colNum)
 						self.nxt()
-					else:
-						self.add(tLexeme.eType.LEFTSH, '<<', self.lineNum, colNum)
+					else: self.add(tLexeme.eType.LEFTSH, '<<', self.lineNum, colNum)
 				else: self.add(tLexeme.eType.LT)
 			elif self.curr == '>':
 				ahdChar = self.ahd()
@@ -307,8 +344,7 @@ class tTokeniser(object):
 					if self.ahd() == '=':
 						self.add(tLexeme.eType.RIGHTSHEQ, '>>=', self.lineNum, colNum)
 						self.nxt()
-					else:
-						self.add(tLexeme.eType.RIGHTSH, '>>', self.lineNum, colNum)
+					else: self.add(tLexeme.eType.RIGHTSH, '>>', self.lineNum, colNum)
 				else: self.add(tLexeme.eType.GT)
 			elif self.curr == '+':
 				ahdChar = self.ahd()
@@ -360,6 +396,7 @@ class tTokeniser(object):
 				else: self.add(tLexeme.eType.NOT)
 			elif self.curr.isalpha() or self.curr == '_': self.ident()
 			elif self.curr.isnumeric(): self.num()
+			elif self.curr == '"': self.cstr()
 			elif self.curr == '\'':
 				ahdChar = self.ahd()
 				lineNum = self.lineNum
@@ -371,37 +408,21 @@ class tTokeniser(object):
 					if ahdChar != '\'':
 						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
-					elif self.curr == 'n':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\n'))
-						self.nxt()
-					elif self.curr == 't':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\t'))
-						self.nxt()
-					elif self.curr == 'r':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\r'))
-						self.nxt()
-					elif self.curr == 'v':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\v'))
-						self.nxt()
-					elif self.curr == '\'':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\''))
-						self.nxt()
-					elif self.curr == 'f':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\f'))
-						self.nxt()
-					elif self.curr == '0':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\0'))
-						self.nxt()
-					elif self.curr == '"':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('"'))
-						self.nxt()
-					elif self.curr == 'b':
-						self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\b'))
-						self.nxt()
+					elif self.curr == 'n': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\n'))
+					elif self.curr == 't': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\t'))
+					elif self.curr == 'r': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\r'))
+					elif self.curr == 'v': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\v'))
+					elif self.curr == '\'': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\''))
+					elif self.curr == 'f': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\f'))
+					elif self.curr == '0': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\0'))
+					elif self.curr == '"': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('"'))
+					elif self.curr == 'b': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\b'))
+					elif self.curr == '\\': self.add(tLexeme.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\\'))
 					else:
 						print(f'ERR: Unsupported escape character \'\\{self.curr}\' in character literal @ {self.fileName}:{lineNum}:{colNum}.')
 						exit(1)
-				elif ahdChar.isspace() and not ahdChar == ' ':
+					self.nxt()
+				elif ahdChar.isspace() and not (ahdChar == ' ' or ahdChar == '\t'):
 					print(f'ERR: Unsupported whitespace encountered in character literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				elif ahdChar == '\'':

@@ -1,14 +1,13 @@
 ; Our program's entry point.
 Entry(num: tIS32, val: ^^tChr): tIS32
 {
-	'\b'
-	;var: tBln = True
-	;if var == True
-	;{
-	;	ret 0
-	;}
-	;else
-	;{
-	;	ret 1
-	;}
+	var: tBln = True
+	if var == True
+	{
+		ret 0
+	}
+	else
+	{
+		ret 1
+	}
 }
