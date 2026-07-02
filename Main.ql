@@ -1,5 +1,5 @@
 ; Our program's entry point.
-Entry(num: tSI32, val: ^^tChr) => tSI32
+Entry(num: tSI32, val: ^^tChr): tSI32
 {
-	ret 01
+	ret 0
 }

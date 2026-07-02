@@ -1,5 +1,4 @@
 #!/bin/python3
-
 import argparse
 import sys
 import os
@@ -15,7 +14,6 @@ class tLexeme(object):
 		COMMA=enum.auto()
 		ASSIGN=enum.auto()
 		EQUIV=enum.auto()
-		POINT=enum.auto()
 		LBRACE=enum.auto()
 		RBRACE=enum.auto()
 		GT=enum.auto()
@@ -53,15 +51,18 @@ class tLexeme(object):
 		KWWHILE=enum.auto()
 
 		NUMINT=enum.auto()
+		NUMFLOAT=enum.auto()
 
-	def __init__(self, lexemeType, rawValue, lineNum, colNum):
+	def __init__(self, lexemeType, rawValue, lineNum, colNum, calcInt=0, calcFlt=0.0):
 		self.lexemeType = lexemeType
 		self.rawValue = rawValue
 		self.lineNum = lineNum
 		self.colNum = colNum
-		self.calcVal = 0
+		self.calcInt = calcInt
+		self.calcFlt = calcFlt
 	def __repr__(self):
-		return f'(@{self.lineNum},{self.colNum}) {str(self.lexemeType)[6:]}: \'{self.rawValue}\' {self.calcVal}'
+		return f'(@{self.lineNum},{self.colNum}) {str(self.lexemeType)[6:]}: \'{self.rawValue}\' {self.calcInt}/{self.calcFlt}'
+
 class tTokeniser(object):
 	def __init__(self, fileName):
 		self.colNum = 0
@@ -82,23 +83,123 @@ class tTokeniser(object):
 		nextChar = self.file.read(1)
 		self.file.seek(self.lastReadByte - 1, io.SEEK_SET)
 		return nextChar
-	def add(self, lexemeType, rawValue='', lineNum=-1, colNum=-1):
+	def add(self, lexemeType, rawValue='', lineNum=-1, colNum=-1, calcInt=0, calcFlt=0.0):
 		if lineNum == -1: lineNum = self.lineNum
 		if colNum == -1: colNum = self.colNum
 		if rawValue == '': rawValue = self.curr
 		lexeme = tLexeme(lexemeType, rawValue, lineNum, colNum)
-		if lexemeType == tLexeme.eType.NUMINT: lexeme.calcVal = int(rawValue)
+		lexeme.calcInt = calcInt
+		lexeme.calcFlt = calcFlt
 		self.lexemes.append(lexeme)
 	def num(self):
 		lineNum = self.lineNum
 		colNum = self.colNum
 		self.stack += self.curr
 		peekedChar = self.ahd()
-		while peekedChar.isnumeric():
-			self.nxt()
-			self.stack += self.curr
-			peekedChar = self.ahd()
-		self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum)
+		intBase = 10
+		if self.curr == '0':
+			if peekedChar == 'H' or peekedChar == 'h':
+				self.stack += peekedChar
+				intBase = 16
+				self.nxt()
+				peekedChar = self.ahd()
+			elif peekedChar == 'O' or peekedChar == 'o':
+				self.stack += peekedChar
+				intBase = 8
+				self.nxt()
+				peekedChar = self.ahd()
+			elif peekedChar == 'B' or peekedChar == 'b':
+				self.stack += peekedChar
+				intBase = 2
+				self.nxt()
+				peekedChar = self.ahd()
+		if intBase == 10:
+			decimalPoint = False
+			exponentMark = False
+			expSign = False
+			while True:
+				if peekedChar.isnumeric() or peekedChar == '_':
+					self.nxt()
+					self.stack += self.curr
+					peekedChar = self.ahd()
+				elif exponentMark == True and (peekedChar == '-' or peekedChar == '+'):
+					if expSign == True:
+						self.nxt()
+						print(f'ERR: Unexpected repeated sign in numeric literal exponent @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						exit(1)
+					self.nxt()
+					self.stack += self.curr
+					peekedChar = self.ahd()
+					expSign = True
+				elif peekedChar == '.':
+					if decimalPoint == True:
+						self.nxt()
+						print(f'ERR: Unexpected repeated decimal point in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						exit(1)
+					self.nxt()
+					self.stack += self.curr
+					peekedChar = self.ahd()
+					decimalPoint = True
+				elif peekedChar == 'E' or peekedChar == 'e':
+					if exponentMark == True:
+						self.nxt()
+						print(f'ERR: Unexpected repeated exponent in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						exit(1)
+					self.nxt()
+					self.stack += self.curr
+					peekedChar = self.ahd()
+					decimalPoint = True
+					exponentMark = True
+				elif peekedChar.isalpha():
+					self.nxt()
+					print(f'ERR: Unexpected character \'{peekedChar}\' in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					exit(1)
+				else: break
+			if decimalPoint == True:
+				calcFlt = float(''.join(self.stack.split('_')))
+				self.add(tLexeme.eType.NUMFLOAT, self.stack, lineNum, colNum, calcFlt=calcFlt)
+			else:
+				calcInt = int(''.join(self.stack.split('_')))
+				self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
+		elif intBase == 16:
+			while True:
+				if peekedChar.isnumeric() or peekedChar == '_' or peekedChar in ['A', 'B', 'C', 'D', 'E', 'F', 'a', 'b', 'c', 'd', 'e', 'f']:
+					self.nxt()
+					self.stack += self.curr
+					peekedChar = self.ahd()
+				elif peekedChar.isalpha():
+					self.nxt()
+					print(f'ERR: Unexpected character \'{peekedChar}\' in hexadecimal numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					exit(1)
+				else: break
+			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
+			self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
+		elif intBase == 8:
+			while True:
+				if peekedChar in [str(idx) for idx in range(0, 8)] or peekedChar == '_':
+					self.nxt()
+					self.stack += self.curr
+					peekedChar = self.ahd()
+				elif peekedChar.isalnum():
+					self.nxt()
+					print(f'ERR: Unexpected character \'{peekedChar}\' in octal numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					exit(1)
+				else: break
+			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
+			self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
+		elif intBase == 2:
+			while True:
+				if peekedChar == '0' or peekedChar == '1' or peekedChar == '_':
+					self.nxt()
+					self.stack += self.curr
+					peekedChar = self.ahd()
+				elif peekedChar.isalnum():
+					self.nxt()
+					print(f'ERR: Unexpected character \'{peekedChar}\' in binary numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					exit(1)
+				else: break
+			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
+			self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum, calcInt=calcInt)
 		self.stack = ''
 	def ident(self):
 		lineNum = self.lineNum
@@ -146,9 +247,6 @@ class tTokeniser(object):
 				ahdChar = self.ahd()
 				if ahdChar == '=':
 					self.add(tLexeme.eType.EQUIV, '==')
-					self.nxt()
-				elif ahdChar == '>':
-					self.add(tLexeme.eType.POINT, '=>')
 					self.nxt()
 				else: self.add(tLexeme.eType.ASSIGN)
 			elif self.curr == '<':
@@ -232,7 +330,7 @@ class tTokeniser(object):
 			elif self.curr.isnumeric():
 				self.num()
 			else:
-				print(f'Err: Unknown lexeme \'{self.curr}\' encountered ({self.fileName}:{self.lineNum}:{self.colNum}).')
+				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
 
 if __name__ == '__main__':
@@ -241,7 +339,7 @@ if __name__ == '__main__':
 	args = argParser.parse_args(sys.argv[1:])
 	for fileName in args.infiles:
 		if not os.path.exists(fileName):
-			print(f'Err: File \'{fileName}\' does not exist.')
+			print(f'ERR: File \'{fileName}\' does not exist.')
 			sys.exit(1)
 	for fileName in args.infiles:
 		t = tTokeniser(fileName)
