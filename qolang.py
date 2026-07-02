@@ -8,44 +8,49 @@ import enum
 
 class tLexeme(object):
 	class eType(enum.Enum):
-		IDENT=0
-		COLON=1
-		LPAREN=2
-		RPAREN=3
-		COMMA=4
-		CARET=5
-		ASSIGN=6
-		EQUIV=7
-		POINT=8
-		LBRACE=9
-		RBRACE=10
-		GT=11
-		LT=12
-		GTEQ=13
-		LTEQ=14
-		LEFTSH=15
-		RIGHTSH=16
-		LEFTSHEQ=17
-		RIGHTSHEQ=18
-		PLUS=19
-		MINUS=20
-		ASTERISK=21
-		FSLASH=22
-		PLUSEQ=23
-		MINUSEQ=24
-		ASTERISKEQ=25
-		FSLASHEQ=26
-		PERCENT=27
-		PERCENTEQ=28
-		CARETEQ=29
-		AND=30
-		OR=31
-		XOR=32
-		NOT=33
-		ANDEQ=34
-		OREQ=35
-		XOREQ=36
-		NOTEQ=37
+		IDENT=enum.auto()
+		COLON=enum.auto()
+		LPAREN=enum.auto()
+		RPAREN=enum.auto()
+		COMMA=enum.auto()
+		CARET=enum.auto()
+		ASSIGN=enum.auto()
+		EQUIV=enum.auto()
+		POINT=enum.auto()
+		LBRACE=enum.auto()
+		RBRACE=enum.auto()
+		GT=enum.auto()
+		LT=enum.auto()
+		GTEQ=enum.auto()
+		LTEQ=enum.auto()
+		LEFTSH=enum.auto()
+		RIGHTSH=enum.auto()
+		LEFTSHEQ=enum.auto()
+		RIGHTSHEQ=enum.auto()
+		PLUS=enum.auto()
+		MINUS=enum.auto()
+		ASTERISK=enum.auto()
+		FSLASH=enum.auto()
+		PLUSEQ=enum.auto()
+		MINUSEQ=enum.auto()
+		ASTERISKEQ=enum.auto()
+		FSLASHEQ=enum.auto()
+		PERCENT=enum.auto()
+		PERCENTEQ=enum.auto()
+		CARETEQ=enum.auto()
+		AND=enum.auto()
+		OR=enum.auto()
+		XOR=enum.auto()
+		NOT=enum.auto()
+		ANDEQ=enum.auto()
+		OREQ=enum.auto()
+		XOREQ=enum.auto()
+		NOTEQ=enum.auto()
+		KWIF=enum.auto()
+		KWELSE=enum.auto()
+		KWRET=enum.auto()
+		KWWHILE=enum.auto()
+
 	def __init__(self, lexemeType, rawValue, lineNum, colNum):
 		self.lexemeType = lexemeType
 		self.rawValue = rawValue
@@ -87,7 +92,11 @@ class tTokeniser(object):
 			self.nxt()
 			self.stack += self.curr
 			peekedChar = self.ahd()
-		self.add(tLexeme.eType.IDENT, self.stack, lineNum, colNum)
+		if self.stack == 'if': self.add(tLexeme.eType.KWIF, self.stack, lineNum, colNum)
+		elif self.stack == 'else': self.add(tLexeme.eType.KWELSE, self.stack, lineNum, colNum)
+		elif self.stack == 'ret': self.add(tLexeme.eType.KWRET, self.stack, lineNum, colNum)
+		elif self.stack == 'while': self.add(tLexeme.eType.KWWHILE, self.stack, lineNum, colNum)
+		else: self.add(tLexeme.eType.IDENT, self.stack, lineNum, colNum)
 		self.stack = ''
 	def strt(self):
 		while True:
