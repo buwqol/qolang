@@ -13,7 +13,6 @@ class tLexeme(object):
 		LPAREN=enum.auto()
 		RPAREN=enum.auto()
 		COMMA=enum.auto()
-		CARET=enum.auto()
 		ASSIGN=enum.auto()
 		EQUIV=enum.auto()
 		POINT=enum.auto()
@@ -37,6 +36,7 @@ class tLexeme(object):
 		FSLASHEQ=enum.auto()
 		PERCENT=enum.auto()
 		PERCENTEQ=enum.auto()
+		CARET=enum.auto()
 		CARETEQ=enum.auto()
 		AND=enum.auto()
 		OR=enum.auto()
@@ -46,18 +46,22 @@ class tLexeme(object):
 		OREQ=enum.auto()
 		XOREQ=enum.auto()
 		NOTEQ=enum.auto()
+
 		KWIF=enum.auto()
 		KWELSE=enum.auto()
 		KWRET=enum.auto()
 		KWWHILE=enum.auto()
+
+		NUMINT=enum.auto()
 
 	def __init__(self, lexemeType, rawValue, lineNum, colNum):
 		self.lexemeType = lexemeType
 		self.rawValue = rawValue
 		self.lineNum = lineNum
 		self.colNum = colNum
+		self.calcVal = 0
 	def __repr__(self):
-		return f'(@{self.lineNum},{self.colNum}) {str(self.lexemeType)[6:]}: \'{self.rawValue}\''
+		return f'(@{self.lineNum},{self.colNum}) {str(self.lexemeType)[6:]}: \'{self.rawValue}\' {self.calcVal}'
 class tTokeniser(object):
 	def __init__(self, fileName):
 		self.colNum = 0
@@ -82,7 +86,20 @@ class tTokeniser(object):
 		if lineNum == -1: lineNum = self.lineNum
 		if colNum == -1: colNum = self.colNum
 		if rawValue == '': rawValue = self.curr
-		self.lexemes.append(tLexeme(lexemeType, rawValue, lineNum, colNum))
+		lexeme = tLexeme(lexemeType, rawValue, lineNum, colNum)
+		if lexemeType == tLexeme.eType.NUMINT: lexeme.calcVal = int(rawValue)
+		self.lexemes.append(lexeme)
+	def num(self):
+		lineNum = self.lineNum
+		colNum = self.colNum
+		self.stack += self.curr
+		peekedChar = self.ahd()
+		while peekedChar.isnumeric():
+			self.nxt()
+			self.stack += self.curr
+			peekedChar = self.ahd()
+		self.add(tLexeme.eType.NUMINT, self.stack, lineNum, colNum)
+		self.stack = ''
 	def ident(self):
 		lineNum = self.lineNum
 		colNum = self.colNum
@@ -111,12 +128,6 @@ class tTokeniser(object):
 			elif self.curr == '(': self.add(tLexeme.eType.LPAREN)
 			elif self.curr == ')': self.add(tLexeme.eType.RPAREN)
 			elif self.curr == ',': self.add(tLexeme.eType.COMMA)
-			elif self.curr == '^':
-				ahdChar = self.ahd()
-				if ahdChar == '=':
-					self.add(tLexeme.eType.CARETEQ, '^=')
-					self.nxt()
-				else: self.add(tLexeme.eType.CARET)
 			elif self.curr == '{': self.add(tLexeme.eType.LBRACE)
 			elif self.curr == '}': self.add(tLexeme.eType.RBRACE)
 			elif self.curr == ';':
@@ -125,6 +136,12 @@ class tTokeniser(object):
 					if ahdChar == '\n' or ahdChar == '':
 						break
 					self.nxt()
+			elif self.curr == '^':
+				ahdChar = self.ahd()
+				if ahdChar == '=':
+					self.add(tLexeme.eType.CARETEQ, '^=')
+					self.nxt()
+				else: self.add(tLexeme.eType.CARET)
 			elif self.curr == '=':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
@@ -212,6 +229,8 @@ class tTokeniser(object):
 				else: self.add(tLexeme.eType.NOT)
 			elif self.curr.isalpha() or self.curr == '_':
 				self.ident()
+			elif self.curr.isnumeric():
+				self.num()
 			else:
 				print(f'Err: Unknown lexeme \'{self.curr}\' encountered ({self.fileName}:{self.lineNum}:{self.colNum}).')
 				exit(1)
