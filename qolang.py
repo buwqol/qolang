@@ -459,6 +459,8 @@ class tTokeniser(object):
 class tParser(object):
 	class tParserObj(abc.ABC):
 		@abc.abstractmethod
+		def __init__(self, lexeme: tTokeniser.tLex): pass
+		@abc.abstractmethod
 		def print(self, indnt: int=0): pass
 	class tPrim(tParserObj): pass
 	class tLit(tPrim):
@@ -514,6 +516,28 @@ class tParser(object):
 			elif self.type == tParser.tUnry.eType.INV: print("(~)")
 			else: assert(False and "Unreachable.")
 			self.child.print(indnt + 1)
+	class tFact(tParserObj):
+		class eType(enum.Enum):
+			MUL=enum.auto()
+			DIV=enum.auto()
+			MOD=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.lhs: tParser.tUnry | tParser.tPrim
+			self.rhs: tParser.tUnry | tParser.tPrim | tParser.tFact
+			if lexeme.type == tTokeniser.tLex.eType.ASTR: self.type = tParser.tFact.eType.MUL
+			elif lexeme.type == tTokeniser.tLex.eType.FSLASH: self.type = tParser.tFact.eType.DIV
+			elif lexeme.type == tTokeniser.tLex.eType.PERCENT: self.type = tParser.tFact.eType.MOD
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range (indnt): print('\t',end='')
+			print('FACTOR', end='')
+			if self.type == tParser.tFact.eType.MUL: print("(*)")
+			elif self.type == tParser.tFact.eType.DIV: print("(/)")
+			elif self.type == tParser.tFact.eType.MOD: print("(%)")
+			else: assert(False and "Unreachable.")
+			self.lhs.print(indnt + 1)
+			self.rhs.print(indnt + 1)
 	def __init__(self):
 		self.idx = 0
 		self.lexemes = []
@@ -538,9 +562,20 @@ class tParser(object):
 			return ret
 		except ValueError:
 			return self.prim()
+	def fact(self):
+		ret = self.unry()
+		try:
+			ret2 = tParser.tFact(self.curr())
+			self.idx += 1
+		except ValueError, IndexError:
+			return ret
+		else:
+			ret2.lhs = ret
+			ret2.rhs = self.fact()
+			return ret2
 	def run(self):
 		try:
-			self.tree = self.unry()
+			self.tree = self.fact()
 		except ValueError:
 			print(f'ERR: Unexpected token encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
