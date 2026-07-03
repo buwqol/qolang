@@ -4,90 +4,92 @@ import sys
 import os
 import io
 import enum
-
-class tLex(object):
-	class eType(enum.Enum):
-		IDENT=enum.auto()
-		COLON=enum.auto()
-		LPAREN=enum.auto()
-		RPAREN=enum.auto()
-		COMMA=enum.auto()
-		EQ=enum.auto()
-		EQEQ=enum.auto()
-		LBRACE=enum.auto()
-		RBRACE=enum.auto()
-		GT=enum.auto()
-		LT=enum.auto()
-		GTEQ=enum.auto()
-		LTEQ=enum.auto()
-		LTLT=enum.auto()
-		GTGT=enum.auto()
-		LTLTEQ=enum.auto()
-		GTGTEQ=enum.auto()
-		PLUS=enum.auto()
-		MINUS=enum.auto()
-		ASTR=enum.auto()
-		FSLASH=enum.auto()
-		PLUSEQ=enum.auto()
-		MINUSEQ=enum.auto()
-		ASTREQ=enum.auto()
-		FSLASHEQ=enum.auto()
-		PERCENT=enum.auto()
-		PERCENTEQ=enum.auto()
-		CARET=enum.auto()
-		CARETEQ=enum.auto()
-		AMP=enum.auto()
-		PIPE=enum.auto()
-		XOR=enum.auto()
-		TIL=enum.auto()
-		AMPEQ=enum.auto()
-		PIPEEQ=enum.auto()
-		TILEQ=enum.auto()
-		EXCLAM=enum.auto()
-		EXCLAMEQ=enum.auto()
-
-		KWIF=enum.auto()
-		KWELSE=enum.auto()
-		KWAND=enum.auto()
-		KWOR=enum.auto()
-		KWRET=enum.auto()
-		KWWHILE=enum.auto()
-		KWTRUE=enum.auto()
-		KWFALSE=enum.auto()
-		KWNULL=enum.auto()
-
-		TYPEIU8=enum.auto()
-		TYPEIS8=enum.auto()
-		TYPEIU16=enum.auto()
-		TYPEIS16=enum.auto()
-		TYPEIU32=enum.auto()
-		TYPEIS32=enum.auto()
-		TYPEIU64=enum.auto()
-		TYPEIS64=enum.auto()
-		TYPEFP32=enum.auto()
-		TYPEFP64=enum.auto()
-		TYPEBLN=enum.auto()
-		TYPENONE=enum.auto()
-		TYPEPTR=enum.auto()
-
-		LITIU=enum.auto()
-		LITFP=enum.auto()
-		LITSTR=enum.auto()
-		LITCHR=enum.auto()
-
-	def __init__(self, lexemeType, rawValue, fileName, lineNum, colNum, calcInt=0, calcFlt=0.0, calcStr=[]):
-		self.lexemeType = lexemeType
-		self.rawValue = rawValue
-		self.fileName = fileName
-		self.lineNum = lineNum
-		self.colNum = colNum
-		self.calcInt = calcInt
-		self.calcFlt = calcFlt
-		self.calcStr = calcStr
-	def __repr__(self):
-		return f'(@{self.lineNum},{self.colNum}) {str(self.lexemeType)[6:]}: \'{self.rawValue}\' {self.calcInt}/{self.calcFlt}/{self.calcStr}'
+import abc
 
 class tTokeniser(object):
+
+	class tLex(object):
+		class eType(enum.Enum):
+			IDENT=enum.auto()
+			COLON=enum.auto()
+			LPAREN=enum.auto()
+			RPAREN=enum.auto()
+			COMMA=enum.auto()
+			EQ=enum.auto()
+			EQEQ=enum.auto()
+			LBRACE=enum.auto()
+			RBRACE=enum.auto()
+			GT=enum.auto()
+			LT=enum.auto()
+			GTEQ=enum.auto()
+			LTEQ=enum.auto()
+			LTLT=enum.auto()
+			GTGT=enum.auto()
+			LTLTEQ=enum.auto()
+			GTGTEQ=enum.auto()
+			PLUS=enum.auto()
+			DASH=enum.auto()
+			ASTR=enum.auto()
+			FSLASH=enum.auto()
+			PLUSEQ=enum.auto()
+			DASHEQ=enum.auto()
+			ASTREQ=enum.auto()
+			FSLASHEQ=enum.auto()
+			PERCENT=enum.auto()
+			PERCENTEQ=enum.auto()
+			CARET=enum.auto()
+			CARETEQ=enum.auto()
+			AMP=enum.auto()
+			PIPE=enum.auto()
+			XOR=enum.auto()
+			TIL=enum.auto()
+			AMPEQ=enum.auto()
+			PIPEEQ=enum.auto()
+			TILEQ=enum.auto()
+			EXCLAM=enum.auto()
+			EXCLAMEQ=enum.auto()
+
+			KWIF=enum.auto()
+			KWELSE=enum.auto()
+			KWAND=enum.auto()
+			KWOR=enum.auto()
+			KWRET=enum.auto()
+			KWWHILE=enum.auto()
+
+			TYPEIU8=enum.auto()
+			TYPEIS8=enum.auto()
+			TYPEIU16=enum.auto()
+			TYPEIS16=enum.auto()
+			TYPEIU32=enum.auto()
+			TYPEIS32=enum.auto()
+			TYPEIU64=enum.auto()
+			TYPEIS64=enum.auto()
+			TYPEFP32=enum.auto()
+			TYPEFP64=enum.auto()
+			TYPEBLN=enum.auto()
+			TYPENONE=enum.auto()
+			TYPEPTR=enum.auto()
+
+			LITIU=enum.auto()
+			LITFP=enum.auto()
+			LITSTR=enum.auto()
+			LITCHR=enum.auto()
+			LITTRUE=enum.auto()
+			LITFALSE=enum.auto()
+			LITNULL=enum.auto()
+
+		def __init__(self, type, rawValue, fileName, lineNum, colNum, calcInt=0, calcFlt=0.0, calcStr=[]):
+			self.type = type
+			self.rawValue = rawValue
+			self.fileName = fileName
+			self.lineNum = lineNum
+			self.colNum = colNum
+			self.calcInt = calcInt
+			self.calcFlt = calcFlt
+			self.calcStr = calcStr
+		def __repr__(self):
+			return f'(@{self.lineNum},{self.colNum}) {str(self.type)[6:]}: \'{self.rawValue}\' {self.calcInt}/{self.calcFlt}/{self.calcStr}'
+
 	def __init__(self, fileName):
 		self.colNum = 0
 		self.lineNum = 1
@@ -107,11 +109,11 @@ class tTokeniser(object):
 		nextChar = self.file.read(1)
 		self.file.seek(self.lastReadByte - 1, io.SEEK_SET)
 		return nextChar
-	def add(self, lexemeType, rawValue='', lineNum=-1, colNum=-1, calcInt=0, calcFlt=0.0, calcStr=[]):
+	def add(self, type, rawValue='', lineNum=-1, colNum=-1, calcInt=0, calcFlt=0.0, calcStr=[]):
 		if lineNum == -1: lineNum = self.lineNum
 		if colNum == -1: colNum = self.colNum
 		if rawValue == '': rawValue = self.curr
-		self.lexemes.append(tLex(lexemeType, rawValue, self.fileName, lineNum, colNum, calcInt=calcInt, calcFlt=calcFlt, calcStr=calcStr))
+		self.lexemes.append(tTokeniser.tLex(type, rawValue, self.fileName, lineNum, colNum, calcInt=calcInt, calcFlt=calcFlt, calcStr=calcStr))
 	def num(self):
 		lineNum = self.lineNum
 		colNum = self.colNum
@@ -178,11 +180,10 @@ class tTokeniser(object):
 				else: break
 			if decimalPoint == True:
 				calcFlt = float(''.join(self.stack.split('_')))
-				self.add(tLex.eType.LITFP, self.stack, lineNum, colNum, calcFlt=calcFlt)
-				LITSTR=enum.auto()
+				self.add(tTokeniser.tLex.eType.LITFP, self.stack, lineNum, colNum, calcFlt=calcFlt)
 			else:
 				calcInt = int(''.join(self.stack.split('_')))
-				self.add(tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
+				self.add(tTokeniser.tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		elif intBase == 16:
 			while True:
 				if peekedChar.isnumeric() or peekedChar == '_' or peekedChar in ['A', 'B', 'C', 'D', 'E', 'F', 'a', 'b', 'c', 'd', 'e', 'f']:
@@ -195,7 +196,7 @@ class tTokeniser(object):
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
-			self.add(tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
+			self.add(tTokeniser.tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		elif intBase == 8:
 			while True:
 				if peekedChar in [str(idx) for idx in range(0, 8)] or peekedChar == '_':
@@ -208,7 +209,7 @@ class tTokeniser(object):
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
-			self.add(tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
+			self.add(tTokeniser.tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		elif intBase == 2:
 			while True:
 				if peekedChar == '0' or peekedChar == '1' or peekedChar == '_':
@@ -221,7 +222,7 @@ class tTokeniser(object):
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
-			self.add(tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
+			self.add(tTokeniser.tLex.eType.LITIU, self.stack, lineNum, colNum, calcInt=calcInt)
 		self.stack = ''
 	def ident(self):
 		lineNum = self.lineNum
@@ -232,29 +233,29 @@ class tTokeniser(object):
 			self.nxt()
 			self.stack += self.curr
 			peekedChar = self.ahd()
-		if self.stack == 'if': self.add(tLex.eType.KWIF, self.stack, lineNum, colNum)
-		elif self.stack == 'else': self.add(tLex.eType.KWELSE, self.stack, lineNum, colNum)
-		elif self.stack == 'ret': self.add(tLex.eType.KWRET, self.stack, lineNum, colNum)
-		elif self.stack == 'while': self.add(tLex.eType.KWWHILE, self.stack, lineNum, colNum)
-		elif self.stack == 'True': self.add(tLex.eType.KWTRUE, self.stack, lineNum, colNum)
-		elif self.stack == 'False': self.add(tLex.eType.KWFALSE, self.stack, lineNum, colNum)
-		elif self.stack == 'Null': self.add(tLex.eType.KWNULL, self.stack, lineNum, colNum)
-		elif self.stack == 'and': self.add(tLex.eType.KWAND, self.stack, lineNum, colNum)
-		elif self.stack == 'or': self.add(tLex.eType.KWOR, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU8': self.add(tLex.eType.TYPEIU8, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS8': self.add(tLex.eType.TYPEIS8, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU16': self.add(tLex.eType.TYPEIU16, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS16': self.add(tLex.eType.TYPEIS16, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU32': self.add(tLex.eType.TYPEIU32, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS32': self.add(tLex.eType.TYPEIS32, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU64': self.add(tLex.eType.TYPEIU64, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS64': self.add(tLex.eType.TYPEIS64, self.stack, lineNum, colNum)
-		elif self.stack == 'tFP32': self.add(tLex.eType.TYPEFP32, self.stack, lineNum, colNum)
-		elif self.stack == 'tFP64': self.add(tLex.eType.TYPEFP64, self.stack, lineNum, colNum)
-		elif self.stack == 'tBln': self.add(tLex.eType.TYPEBLN, self.stack, lineNum, colNum)
-		elif self.stack == 'tNone': self.add(tLex.eType.TYPENONE, self.stack, lineNum, colNum)
-		elif self.stack == 'tPtr': self.add(tLex.eType.TYPEPTR, self.stack, lineNum, colNum)
-		else: self.add(tLex.eType.IDENT, self.stack, lineNum, colNum)
+		if self.stack == 'if': self.add(tTokeniser.tLex.eType.KWIF, self.stack, lineNum, colNum)
+		elif self.stack == 'else': self.add(tTokeniser.tLex.eType.KWELSE, self.stack, lineNum, colNum)
+		elif self.stack == 'ret': self.add(tTokeniser.tLex.eType.KWRET, self.stack, lineNum, colNum)
+		elif self.stack == 'while': self.add(tTokeniser.tLex.eType.KWWHILE, self.stack, lineNum, colNum)
+		elif self.stack == 'True': self.add(tTokeniser.tLex.eType.LITTRUE, self.stack, lineNum, colNum)
+		elif self.stack == 'False': self.add(tTokeniser.tLex.eType.LITFALSE, self.stack, lineNum, colNum)
+		elif self.stack == 'Null': self.add(tTokeniser.tLex.eType.LITNULL, self.stack, lineNum, colNum)
+		elif self.stack == 'and': self.add(tTokeniser.tLex.eType.KWAND, self.stack, lineNum, colNum)
+		elif self.stack == 'or': self.add(tTokeniser.tLex.eType.KWOR, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU8': self.add(tTokeniser.tLex.eType.TYPEIU8, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS8': self.add(tTokeniser.tLex.eType.TYPEIS8, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU16': self.add(tTokeniser.tLex.eType.TYPEIU16, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS16': self.add(tTokeniser.tLex.eType.TYPEIS16, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU32': self.add(tTokeniser.tLex.eType.TYPEIU32, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS32': self.add(tTokeniser.tLex.eType.TYPEIS32, self.stack, lineNum, colNum)
+		elif self.stack == 'tIU64': self.add(tTokeniser.tLex.eType.TYPEIU64, self.stack, lineNum, colNum)
+		elif self.stack == 'tIS64': self.add(tTokeniser.tLex.eType.TYPEIS64, self.stack, lineNum, colNum)
+		elif self.stack == 'tFP32': self.add(tTokeniser.tLex.eType.TYPEFP32, self.stack, lineNum, colNum)
+		elif self.stack == 'tFP64': self.add(tTokeniser.tLex.eType.TYPEFP64, self.stack, lineNum, colNum)
+		elif self.stack == 'tBln': self.add(tTokeniser.tLex.eType.TYPEBLN, self.stack, lineNum, colNum)
+		elif self.stack == 'tNone': self.add(tTokeniser.tLex.eType.TYPENONE, self.stack, lineNum, colNum)
+		elif self.stack == 'tPtr': self.add(tTokeniser.tLex.eType.TYPEPTR, self.stack, lineNum, colNum)
+		else: self.add(tTokeniser.tLex.eType.IDENT, self.stack, lineNum, colNum)
 		self.stack = ''
 	def cstr(self):
 		lineNum = self.lineNum
@@ -294,7 +295,7 @@ class tTokeniser(object):
 		self.nxt()
 		self.stack += self.curr
 		calcStr.append(0)
-		self.add(tLex.eType.LITSTR, self.stack, lineNum, colNum, calcStr=calcStr)
+		self.add(tTokeniser.tLex.eType.LITSTR, self.stack, lineNum, colNum, calcStr=calcStr)
 		self.stack = ''
 	def strt(self):
 		while True:
@@ -305,12 +306,12 @@ class tTokeniser(object):
 				self.colNum = 0
 			elif self.curr == '\r': self.colNum = 0
 			elif self.curr == ' ' or self.curr == '\t': continue
-			elif self.curr == ':': self.add(tLex.eType.COLON)
-			elif self.curr == '(': self.add(tLex.eType.LPAREN)
-			elif self.curr == ')': self.add(tLex.eType.RPAREN)
-			elif self.curr == ',': self.add(tLex.eType.COMMA)
-			elif self.curr == '{': self.add(tLex.eType.LBRACE)
-			elif self.curr == '}': self.add(tLex.eType.RBRACE)
+			elif self.curr == ':': self.add(tTokeniser.tLex.eType.COLON)
+			elif self.curr == '(': self.add(tTokeniser.tLex.eType.LPAREN)
+			elif self.curr == ')': self.add(tTokeniser.tLex.eType.RPAREN)
+			elif self.curr == ',': self.add(tTokeniser.tLex.eType.COMMA)
+			elif self.curr == '{': self.add(tTokeniser.tLex.eType.LBRACE)
+			elif self.curr == '}': self.add(tTokeniser.tLex.eType.RBRACE)
 			elif self.curr == ';':
 				while True:
 					ahdChar = self.ahd()
@@ -319,95 +320,95 @@ class tTokeniser(object):
 			elif self.curr == '^':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.CARETEQ, '^=')
+					self.add(tTokeniser.tLex.eType.CARETEQ, '^=')
 					self.nxt()
-				else: self.add(tLex.eType.CARET)
+				else: self.add(tTokeniser.tLex.eType.CARET)
 			elif self.curr == '=':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.EQEQ, '==')
+					self.add(tTokeniser.tLex.eType.EQEQ, '==')
 					self.nxt()
-				else: self.add(tLex.eType.EQ)
+				else: self.add(tTokeniser.tLex.eType.EQ)
 			elif self.curr == '!':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.EXCLAMEQ, '!=')
+					self.add(tTokeniser.tLex.eType.EXCLAMEQ, '!=')
 					self.nxt()
-				else: self.add(tLex.eType.EXCLAM)
+				else: self.add(tTokeniser.tLex.eType.EXCLAM)
 			elif self.curr == '<':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.LTEQ, '<=')
+					self.add(tTokeniser.tLex.eType.LTEQ, '<=')
 					self.nxt()
 				elif ahdChar == '<':
 					colNum = self.colNum
 					self.nxt()
 					if self.ahd() == '=':
-						self.add(tLex.eType.LTLTEQ, '<<=', self.lineNum, colNum)
+						self.add(tTokeniser.tLex.eType.LTLTEQ, '<<=', self.lineNum, colNum)
 						self.nxt()
-					else: self.add(tLex.eType.LTLT, '<<', self.lineNum, colNum)
-				else: self.add(tLex.eType.LT)
+					else: self.add(tTokeniser.tLex.eType.LTLT, '<<', self.lineNum, colNum)
+				else: self.add(tTokeniser.tLex.eType.LT)
 			elif self.curr == '>':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.GTEQ, '>=')
+					self.add(tTokeniser.tLex.eType.GTEQ, '>=')
 					self.nxt()
 				elif ahdChar == '>':
 					colNum = self.colNum
 					self.nxt()
 					if self.ahd() == '=':
-						self.add(tLex.eType.GTGTEQ, '>>=', self.lineNum, colNum)
+						self.add(tTokeniser.tLex.eType.GTGTEQ, '>>=', self.lineNum, colNum)
 						self.nxt()
-					else: self.add(tLex.eType.GTGT, '>>', self.lineNum, colNum)
-				else: self.add(tLex.eType.GT)
+					else: self.add(tTokeniser.tLex.eType.GTGT, '>>', self.lineNum, colNum)
+				else: self.add(tTokeniser.tLex.eType.GT)
 			elif self.curr == '+':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.PLUSEQ, '+=')
+					self.add(tTokeniser.tLex.eType.PLUSEQ, '+=')
 					self.nxt()
-				else: self.add(tLex.eType.PLUS)
+				else: self.add(tTokeniser.tLex.eType.PLUS)
 			elif self.curr == '-':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.MINUSEQ, '-=')
+					self.add(tTokeniser.tLex.eType.DASHEQ, '-=')
 					self.nxt()
-				else: self.add(tLex.eType.MINUS)
+				else: self.add(tTokeniser.tLex.eType.DASH)
 			elif self.curr == '*':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.ASTREQ, '*=')
+					self.add(tTokeniser.tLex.eType.ASTREQ, '*=')
 					self.nxt()
-				else: self.add(tLex.eType.ASTR)
+				else: self.add(tTokeniser.tLex.eType.ASTR)
 			elif self.curr == '/':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.FSLASHEQ, '/=')
+					self.add(tTokeniser.tLex.eType.FSLASHEQ, '/=')
 					self.nxt()
-				else: self.add(tLex.eType.FSLASH)
+				else: self.add(tTokeniser.tLex.eType.FSLASH)
 			elif self.curr == '%':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.PERCENTEQ, '%=')
+					self.add(tTokeniser.tLex.eType.PERCENTEQ, '%=')
 					self.nxt()
-				else: self.add(tLex.eType.PERCENT)
+				else: self.add(tTokeniser.tLex.eType.PERCENT)
 			elif self.curr == '&':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.AMPEQ, '&=')
+					self.add(tTokeniser.tLex.eType.AMPEQ, '&=')
 					self.nxt()
-				else: self.add(tLex.eType.AMP)
+				else: self.add(tTokeniser.tLex.eType.AMP)
 			elif self.curr == '|':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.PIPEEQ, '|=')
+					self.add(tTokeniser.tLex.eType.PIPEEQ, '|=')
 					self.nxt()
-				else: self.add(tLex.eType.PIPE)
+				else: self.add(tTokeniser.tLex.eType.PIPE)
 			elif self.curr == '~':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tLex.eType.TILEQ, '~=')
+					self.add(tTokeniser.tLex.eType.TILEQ, '~=')
 					self.nxt()
-				else: self.add(tLex.eType.TIL)
+				else: self.add(tTokeniser.tLex.eType.TIL)
 			elif self.curr.isalpha() or self.curr == '_': self.ident()
 			elif self.curr.isnumeric(): self.num()
 			elif self.curr == '"': self.cstr()
@@ -422,16 +423,16 @@ class tTokeniser(object):
 					if ahdChar != '\'':
 						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
-					elif self.curr == 'n': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\n'))
-					elif self.curr == 't': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\t'))
-					elif self.curr == 'r': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\r'))
-					elif self.curr == 'v': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\v'))
-					elif self.curr == '\'': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum,calcInt=ord('\''))
-					elif self.curr == 'f': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\f'))
-					elif self.curr == '0': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\0'))
-					elif self.curr == '"': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('"'))
-					elif self.curr == 'b': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\b'))
-					elif self.curr == '\\': self.add(tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum,calcInt=ord('\\'))
+					elif self.curr == 'n': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\n'))
+					elif self.curr == 't': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\t'))
+					elif self.curr == 'r': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\r'))
+					elif self.curr == 'v': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\v'))
+					elif self.curr == '\'': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum,calcInt=ord('\''))
+					elif self.curr == 'f': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\f'))
+					elif self.curr == '0': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\0'))
+					elif self.curr == '"': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('"'))
+					elif self.curr == 'b': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\b'))
+					elif self.curr == '\\': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum,calcInt=ord('\\'))
 					else:
 						print(f'ERR: Unsupported escape character \'\\{self.curr}\' in character literal @ {self.fileName}:{lineNum}:{colNum}.')
 						exit(1)
@@ -449,58 +450,107 @@ class tTokeniser(object):
 						self.nxt()
 						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
-					self.add(tLex.eType.LITCHR, f'\'{self.curr}\'', lineNum, colNum, calcInt=ord(self.curr))
+					self.add(tTokeniser.tLex.eType.LITCHR, f'\'{self.curr}\'', lineNum, colNum, calcInt=ord(self.curr))
 					self.nxt()
 			else:
 				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
 
-class tOpr(object):
-	class eType(enum.Enum):
-		EQEQ=enum.auto()
-		NOTEQ=enum.auto()
-		LT=enum.auto()
-		LTEQ=enum.auto()
-		GT=enum.auto()
-		GTEQ=enum.auto()
-		ADD=enum.auto()
-		SUB=enum.auto()
-		MUL=enum.auto()
-		DIV=enum.auto()
-		LSHF=enum.auto()
-		RSHF=enum.auto()
-		BAND=enum.auto()
-		BOR=enum.auto()
-		BXOR=enum.auto()
-		MOD=enum.auto()
-	def __init__(self, lexeme: tLex):
-		self.lexeme = lexeme
-		if lexeme.lexemeType == tLex.eType.EQEQ: self.oprType = tOpr.eType.EQEQ
-		elif lexeme.lexemeType == tLex.eType.EXCLAMEQ: self.oprType = tOpr.eType.NOTEQ
-		elif lexeme.lexemeType == tLex.eType.LT: self.oprType = tOpr.eType.LT
-		elif lexeme.lexemeType == tLex.eType.LTEQ: self.oprType = tOpr.eType.LTEQ
-		elif lexeme.lexemeType == tLex.eType.GT: self.oprType = tOpr.eType.GT
-		elif lexeme.lexemeType == tLex.eType.GTEQ: self.oprType = tOpr.eType.GTEQ
-		elif lexeme.lexemeType == tLex.eType.PLUS: self.oprType = tOpr.eType.ADD
-		elif lexeme.lexemeType == tLex.eType.MINUS: self.oprType = tOpr.eType.SUB
-		elif lexeme.lexemeType == tLex.eType.ASTR: self.oprType = tOpr.eType.MUL
-		elif lexeme.lexemeType == tLex.eType.FSLASH: self.oprType = tOpr.eType.DIV
-		elif lexeme.lexemeType == tLex.eType.LTLT: self.oprType = tOpr.eType.LSHF
-		elif lexeme.lexemeType == tLex.eType.GTGT: self.oprType = tOpr.eType.RSHF
-		elif lexeme.lexemeType == tLex.eType.AMP: self.oprType = tOpr.eType.BAND
-		elif lexeme.lexemeType == tLex.eType.PIPE: self.oprType = tOpr.eType.BOR
-		elif lexeme.lexemeType == tLex.eType.CARET: self.oprType = tOpr.eType.BXOR
-		elif lexeme.lexemeType == tLex.eType.PERCENT: self.oprType = tOpr.eType.MOD
-		else:
-			print(f'ERR: Unexpected lexeme encountered during operator parsing @ {lexeme.fileName}:{lexeme.lineNum}:{lexeme.colNum}.')
+class tParser(object):
+	class tParserObj(abc.ABC):
+		@abc.abstractmethod
+		def print(self, indnt: int=0): pass
+	class tPrim(tParserObj): pass
+	class tLit(tPrim):
+		class eType(enum.Enum):
+			IU=enum.auto()
+			FP=enum.auto()
+			STR=enum.auto()
+			CHR=enum.auto()
+			TRUE=enum.auto()
+			FALSE=enum.auto()
+			NULL=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if lexeme.type == tTokeniser.tLex.eType.LITIU: self.type = tParser.tLit.eType.IU
+			elif lexeme.type == tTokeniser.tLex.eType.LITFP: self.type = tParser.tLit.eType.FP
+			elif lexeme.type == tTokeniser.tLex.eType.LITSTR: self.type = tParser.tLit.eType.STR
+			elif lexeme.type == tTokeniser.tLex.eType.LITCHR: self.type = tParser.tLit.eType.CHR
+			elif lexeme.type == tTokeniser.tLex.eType.LITTRUE: self.type = tParser.tLit.eType.TRUE
+			elif lexeme.type == tTokeniser.tLex.eType.LITFALSE: self.type = tParser.tLit.eType.FALSE
+			elif lexeme.type == tTokeniser.tLex.eType.LITNULL: self.type = tParser.tLit.eType.NULL
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range (indnt): print('\t',end='')
+			print('LITERAL', end='')
+			if self.type == tParser.tLit.eType.IU: print("(IU) " + str(self.lexeme.calcInt))
+			elif self.type == tParser.tLit.eType.FP: print("(FP) " + str(self.lexeme.calcFlt))
+			elif self.type == tParser.tLit.eType.STR: print("(STR) " + self.lexeme.calcStr)
+			elif self.type == tParser.tLit.eType.CHR: print("(CHR) " + str(self.lexeme.calcInt))
+			elif self.type == tParser.tLit.eType.TRUE: print("(TRUE) " + "True")
+			elif self.type == tParser.tLit.eType.FALSE: print("(FALSE) " + "False")
+			elif self.type == tParser.tLit.eType.NULL: print("(NULL) " + "Null")
+			else: assert(False and "Unreachable.")
+	class tUnry(tParserObj):
+		class eType(enum.Enum):
+			POS=enum.auto()
+			NEG=enum.auto()
+			NOT=enum.auto()
+			INV=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.child: tParser.tUnry | tParser.tPrim
+			if lexeme.type == tTokeniser.tLex.eType.PLUS: self.type = tParser.tUnry.eType.POS
+			elif lexeme.type == tTokeniser.tLex.eType.DASH: self.type = tParser.tUnry.eType.NEG
+			elif lexeme.type == tTokeniser.tLex.eType.EXCLAM: self.type = tParser.tUnry.eType.NOT
+			elif lexeme.type == tTokeniser.tLex.eType.TIL: self.type = tParser.tUnry.eType.INV
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range (indnt): print('\t',end='')
+			print('UNARY', end='')
+			if self.type == tParser.tUnry.eType.POS: print("(+)")
+			elif self.type == tParser.tUnry.eType.NEG: print("(-)")
+			elif self.type == tParser.tUnry.eType.NOT: print("(!)")
+			elif self.type == tParser.tUnry.eType.INV: print("(~)")
+			else: assert(False and "Unreachable.")
+			self.child.print(indnt + 1)
+	def __init__(self):
+		self.idx = 0
+		self.lexemes = []
+		self.tree: tParser.tParserObj
+	def lex(self, fileName):
+		t = tTokeniser(fileName)
+		t.strt()
+		self.lexemes = t.lexemes.copy()
+	def curr(self) -> tTokeniser.tLex:
+		return self.lexemes[self.idx]
+	def lit(self):
+		ret = tParser.tLit(self.curr())
+		self.idx += 1
+		return ret
+	def prim(self):
+		return self.lit()
+	def unry(self):
+		try:
+			ret = tParser.tUnry(self.curr())
+			self.idx += 1
+			ret.child = self.unry()
+			return ret
+		except ValueError:
+			return self.prim()
+	def run(self):
+		try:
+			self.tree = self.unry()
+		except ValueError:
+			print(f'ERR: Unexpected token encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
 			exit(1)
-
-class tBin(object):
-	def __init__(self, lhs: tLex, opr: tLex, rhs: tLex):
-		self.opr = tOpr(opr)
-
-class tExpr(object):
-	def __init__(self): pass
+		if self.idx < len(self.lexemes):
+			print(f'ERR: Unhandled tokens, starting @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
+			exit(1)
+	def print(self):
+		self.tree.print()
 
 if __name__ == '__main__':
 	argParser = argparse.ArgumentParser(prog='qolang', description='qolang language compiler.')
@@ -511,7 +561,7 @@ if __name__ == '__main__':
 			print(f'ERR: File \'{fileName}\' does not exist.')
 			sys.exit(1)
 	for fileName in args.infiles:
-		t = tTokeniser(fileName)
-		t.strt()
-		for lexeme in t.lexemes:
-			print(lexeme)
+		parser = tParser()
+		parser.lex(fileName)
+		parser.run()
+		parser.print()
