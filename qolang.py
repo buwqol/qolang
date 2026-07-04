@@ -14,7 +14,10 @@ class tTokeniser(object):
 			COLON=enum.auto()
 			LPAREN=enum.auto()
 			RPAREN=enum.auto()
+			LBRACK=enum.auto()
+			RBRACK=enum.auto()
 			COMMA=enum.auto()
+			PERIOD=enum.auto()
 			EQ=enum.auto()
 			EQEQ=enum.auto()
 			LBRACE=enum.auto()
@@ -151,7 +154,7 @@ class tTokeniser(object):
 				elif exponentMark == True and (peekedChar == '-' or peekedChar == '+'):
 					if expSign == True:
 						self.nxt()
-						print(f'ERR: Unexpected repeated sign in numeric literal exponent @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected repeated sign in numeric literal exponent @{self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.nxt()
 					self.stack += self.curr
@@ -160,7 +163,7 @@ class tTokeniser(object):
 				elif peekedChar == '.':
 					if decimalPoint == True:
 						self.nxt()
-						print(f'ERR: Unexpected repeated decimal point in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected repeated decimal point in numeric literal @{self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.nxt()
 					self.stack += self.curr
@@ -169,7 +172,7 @@ class tTokeniser(object):
 				elif peekedChar == 'E' or peekedChar == 'e':
 					if exponentMark == True:
 						self.nxt()
-						print(f'ERR: Unexpected repeated exponent in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected repeated exponent in numeric literal @{self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.nxt()
 					self.stack += self.curr
@@ -178,7 +181,7 @@ class tTokeniser(object):
 					exponentMark = True
 				elif peekedChar.isalpha():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in numeric literal @{self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			if decimalPoint == True:
@@ -195,7 +198,7 @@ class tTokeniser(object):
 					peekedChar = self.ahd()
 				elif peekedChar.isalpha():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in hexadecimal numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in hexadecimal numeric literal @{self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
@@ -208,7 +211,7 @@ class tTokeniser(object):
 					peekedChar = self.ahd()
 				elif peekedChar.isalnum():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in octal numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in octal numeric literal @{self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
@@ -221,7 +224,7 @@ class tTokeniser(object):
 					peekedChar = self.ahd()
 				elif peekedChar.isalnum():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in binary numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in binary numeric literal @{self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stack[2:].split('_')), intBase)
@@ -268,7 +271,7 @@ class tTokeniser(object):
 		ahdChar = self.ahd()
 		while ahdChar != '"':
 			if ahdChar in ['\n', '\b', '\r', '\v', '\f']:
-				print(f'ERR: Unclosed string literal @ {self.fileName}:{lineNum}:{colNum}.')
+				print(f'ERR: Unclosed string literal @{self.fileName}:{lineNum}:{colNum}.')
 				exit(1)
 			elif ahdChar == '\\':
 				self.nxt()
@@ -285,7 +288,7 @@ class tTokeniser(object):
 				elif ahdChar == 'b': calcStr.append(ord('\b'))
 				elif ahdChar == '\\':calcStr.append(ord('\\'))
 				else:
-					print(f'ERR: Unsupported escape character \'\\{self.curr}\' in string literal @ {self.fileName}:{lineNum}:{colNum}.')
+					print(f'ERR: Unsupported escape character \'\\{self.curr}\' in string literal @{self.fileName}:{lineNum}:{colNum}.')
 					exit(1)
 				self.nxt()
 				ahdChar = self.ahd()
@@ -313,8 +316,11 @@ class tTokeniser(object):
 			elif self.curr == '(': self.add(tTokeniser.tLex.eType.LPAREN)
 			elif self.curr == ')': self.add(tTokeniser.tLex.eType.RPAREN)
 			elif self.curr == ',': self.add(tTokeniser.tLex.eType.COMMA)
+			elif self.curr == '.': self.add(tTokeniser.tLex.eType.PERIOD)
 			elif self.curr == '{': self.add(tTokeniser.tLex.eType.LBRACE)
 			elif self.curr == '}': self.add(tTokeniser.tLex.eType.RBRACE)
+			elif self.curr == '[': self.add(tTokeniser.tLex.eType.LBRACK)
+			elif self.curr == ']': self.add(tTokeniser.tLex.eType.RBRACK)
 			elif self.curr == ';':
 				while True:
 					ahdChar = self.ahd()
@@ -424,7 +430,7 @@ class tTokeniser(object):
 					self.nxt()
 					ahdChar = self.ahd()
 					if ahdChar != '\'':
-						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @{self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					elif self.curr == 'n': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\n'))
 					elif self.curr == 't': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\t'))
@@ -437,26 +443,26 @@ class tTokeniser(object):
 					elif self.curr == 'b': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\b'))
 					elif self.curr == '\\': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum,calcInt=ord('\\'))
 					else:
-						print(f'ERR: Unsupported escape character \'\\{self.curr}\' in character literal @ {self.fileName}:{lineNum}:{colNum}.')
+						print(f'ERR: Unsupported escape character \'\\{self.curr}\' in character literal @{self.fileName}:{lineNum}:{colNum}.')
 						exit(1)
 					self.nxt()
 				elif ahdChar.isspace() and not (ahdChar == ' ' or ahdChar == '\t'):
-					print(f'ERR: Unsupported whitespace encountered in character literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unsupported whitespace encountered in character literal @{self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				elif ahdChar == '\'':
-					print(f'ERR: Empty char literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Empty char literal encountered @{self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else:
 					self.nxt()
 					ahdChar = self.ahd()
 					if ahdChar != '\'':
 						self.nxt()
-						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @{self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.add(tTokeniser.tLex.eType.LITCHR, f'\'{self.curr}\'', lineNum, colNum, calcInt=ord(self.curr))
 					self.nxt()
 			else:
-				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @{self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
 
 class tParser(object):
@@ -504,6 +510,38 @@ class tParser(object):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			print('(' + self.lexeme.rawValue + ')')
+	class tPstFx(tParserObj):
+		class eType(enum.Enum):
+			ACS=enum.auto()
+			ARR=enum.auto()
+			CALL=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj | list | None
+			if lexeme.type == tTokeniser.tLex.eType.LPAREN: self.type = tParser.tPstFx.eType.CALL
+			elif lexeme.type == tTokeniser.tLex.eType.LBRACK: self.type = tParser.tPstFx.eType.ARR
+			elif lexeme.type == tTokeniser.tLex.eType.PERIOD: self.type = tParser.tPstFx.eType.ACS
+			else: raise ValueError
+		def fnsh(self, lexeme: tTokeniser.tLex):
+			if self.type == tParser.tPstFx.eType.CALL and lexeme.type != tTokeniser.tLex.eType.RPAREN:
+				print(f'ERR: Unclosed parentheses during function call, first opened @{self.lexeme.fileName}:{self.lexeme.lineNum}:{self.lexeme.colNum}.')
+				exit(1)
+			elif self.type == tParser.tPstFx.eType.ARR and lexeme.type != tTokeniser.tLex.eType.RBRACK:
+				print(f'ERR: Unclosed brackets during array accessor, first opened @{self.lexeme.fileName}:{self.lexeme.lineNum}:{self.lexeme.colNum}.')
+				exit(1)
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			if self.type == tParser.tPstFx.eType.CALL: print("(())")
+			elif self.type == tParser.tPstFx.eType.ARR: print("([])")
+			elif self.type == tParser.tPstFx.eType.ACS: print("(.)")
+			self.lhs.print(indnt + 1)
+			if isinstance(self.rhs, list):
+				for idx in range(len(self.rhs)):
+					self.rhs[idx].print(indnt + 1)
+			elif self.rhs != None:
+				self.rhs.print(indnt + 1)
 	class tUnry(tParserObj):
 		class eType(enum.Enum):
 			POS=enum.auto()
@@ -671,22 +709,22 @@ class tParser(object):
 		return self.lexemes[self.idx]
 	def lit(self):
 		ret = tParser.tLit(self.curr())
-		self.idx += 1
+		self.idx+=1
 		return ret
 	def grpng(self):
 		startLine = self.curr().lineNum
 		startCol = self.curr().colNum
 		if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise ValueError
-		self.idx += 1
+		self.idx+=1
 		ret = self.expr()
 		if self.curr().type != tTokeniser.tLex.eType.RPAREN:
-			print(f'ERR: Unclosed parenthesis started @ {self.curr().fileName, startLine, startCol}.')
+			print(f'ERR: Unclosed parenthesis started @{self.curr().fileName, startLine, startCol}.')
 			exit(1)
-		self.idx += 1
+		self.idx+=1
 		return ret
 	def idnt(self):
 		ret = tParser.tIdnt(self.curr())
-		self.idx += 1
+		self.idx+=1
 		return ret
 	def prim(self):
 		try:
@@ -696,32 +734,53 @@ class tParser(object):
 				return self.idnt()
 			except ValueError:
 				return self.lit()
+	def pstfx(self):
+		root = self.prim()
+		try:
+			while True:
+				tmp = tParser.tPstFx(self.curr())
+				self.idx+=1
+				tmp.lhs = root
+				root = tmp
+				if root.type == tParser.tPstFx.eType.CALL:
+					lineNum = self.curr().lineNum
+					colNum = self.curr().colNum
+					root.rhs = []
+					while True:
+						if self.curr().type == tTokeniser.tLex.eType.RPAREN: break
+						elif len(root.rhs) != 0 and self.curr().type != tTokeniser.tLex.eType.COMMA:
+							print(f'ERR: Expected comma @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum} to separate arguments of function call @{self.curr().fileName}:{lineNum}:{colNum}.')
+							exit(1)
+						elif self.curr().type == tTokeniser.tLex.eType.COMMA:
+							self.idx+=1
+						try:
+							root.rhs.append(self.expr())
+						except ValueError, IndexError: pass
+					root.fnsh(self.curr())
+					self.idx+=1
+				elif root.type == tParser.tPstFx.eType.ARR:
+					root.rhs = self.expr()
+					root.fnsh(self.curr())
+					self.idx+=1
+				else:
+					root.rhs = self.idnt()
+		except ValueError, IndexError:
+			return root
 	def unry(self):
 		try:
 			ret = tParser.tUnry(self.curr())
 		except ValueError:
-			return self.prim()
+			return self.pstfx()
 		else:
-			self.idx += 1
+			self.idx+=1
 			ret.child = self.unry()
 			return ret
-	def factold(self):
-		ret = self.unry()
-		try:
-			ret2 = tParser.tFact(self.curr())
-		except ValueError, IndexError:
-			return ret
-		else:
-			self.idx += 1
-			ret2.lhs = ret
-			ret2.rhs = self.factold()
-			return ret2
 	def fact(self):
 		root = self.unry()
 		try:
 			while True:
 				tmp = tParser.tFact(self.curr())
-				self.idx += 1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.unry()
@@ -732,7 +791,7 @@ class tParser(object):
 		try:
 			while True:
 				tmp = tParser.tTerm(self.curr())
-				self.idx += 1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.fact()
@@ -743,7 +802,7 @@ class tParser(object):
 		try:
 			while True:
 				tmp = tParser.tBtws(self.curr())
-				self.idx += 1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.term()
@@ -754,7 +813,7 @@ class tParser(object):
 		try:
 			while True:
 				tmp = tParser.tShft(self.curr())
-				self.idx += 1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.btws()
@@ -765,7 +824,7 @@ class tParser(object):
 		try:
 			while True:
 				tmp = tParser.tComp(self.curr())
-				self.idx += 1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.shft()
@@ -776,7 +835,7 @@ class tParser(object):
 		try:
 			while True:
 				tmp = tParser.tEqlt(self.curr())
-				self.idx += 1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.comp()
@@ -788,11 +847,11 @@ class tParser(object):
 		try:
 			self.tree = self.expr()
 		except ValueError:
-			print(f'ERR: Unexpected token encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unexpected token encountered @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
 			exit(1)
 		if self.idx < len(self.lexemes):
-			print(f'ERR: Unhandled tokens, starting @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unhandled tokens, starting @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
 			exit(1)
 	def print(self):

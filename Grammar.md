@@ -1,21 +1,21 @@
 lit => IU | FP | STR | CHR | TRUE | FALSE | NULL
 
-prim => lit | grpng | IDENT
+prim => lit | IDENT | LPAREN expr RPAREN
 
-unry => (PLUS | DASH | EXCLAM | TIL | CARET | ATSGN) unry | prim
+pstfx => prim (LPAREN (expr (COMMA expr)\*)? RPAREN | LBRACK expr RBRACK | PERIOD IDENT)\*
 
-fact => unry ((ASTR | FSLSH | PRCNT) unry)*
+unry => (PLUS | DASH | EXCLAM | TIL | CARET | ATSGN) unry | pstfx
 
-term => fact ((PLUS | DASH) fact)*
+fact => unry ((ASTR | FSLSH | PRCNT) unry)\*
 
-btws => term ((AMP | PIPE | CARET) term)*
+term => fact ((PLUS | DASH) fact)\*
 
-shft => btws ((LTLT | GTGT) btws)*
+btws => term ((AMP | PIPE | CARET) term)\*
 
-comp => shft ((LT | LTEQ | GT | GTEQ) shft)*
+shft => btws ((LTLT | GTGT) btws)\*
 
-eqlt => comp ((EQEQ | EXCLAMEQ) comp)*
+comp => shft ((LT | LTEQ | GT | GTEQ) shft)\*
+
+eqlt => comp ((EQEQ | EXCLAMEQ) comp)\*
 
 expr => eqlt
-
-grpng => LPAREN expr RPAREN
