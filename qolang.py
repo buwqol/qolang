@@ -39,6 +39,7 @@ class tTokeniser(object):
 			PRCNTEQ=enum.auto()
 			CARET=enum.auto()
 			CARETEQ=enum.auto()
+			ATSGN=enum.auto()
 			AMP=enum.auto()
 			PIPE=enum.auto()
 			XOR=enum.auto()
@@ -495,12 +496,22 @@ class tParser(object):
 			elif self.type == tParser.tLit.eType.FALSE: print("(FALSE) " + "False")
 			elif self.type == tParser.tLit.eType.NULL: print("(NULL) " + "Null")
 			else: assert(False and "Unreachable.")
+	class tIdnt(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if lexeme.type != tTokeniser.tLex.eType.IDENT: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			print('(' + self.lexeme.rawValue + ')')
 	class tUnry(tParserObj):
 		class eType(enum.Enum):
 			POS=enum.auto()
 			NEG=enum.auto()
 			NOT=enum.auto()
 			INV=enum.auto()
+			PTR=enum.auto()
+			AT=enum.auto()
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
 			self.child: tParser.tParserObj
@@ -508,6 +519,8 @@ class tParser(object):
 			elif lexeme.type == tTokeniser.tLex.eType.DASH: self.type = tParser.tUnry.eType.NEG
 			elif lexeme.type == tTokeniser.tLex.eType.EXCLAM: self.type = tParser.tUnry.eType.NOT
 			elif lexeme.type == tTokeniser.tLex.eType.TIL: self.type = tParser.tUnry.eType.INV
+			elif lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tUnry.eType.PTR
+			elif lexeme.type == tTokeniser.tLex.eType.ATSGN: self.type = tParser.tUnry.eType.AT
 			else: raise ValueError
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
@@ -516,6 +529,8 @@ class tParser(object):
 			elif self.type == tParser.tUnry.eType.NEG: print("(-)")
 			elif self.type == tParser.tUnry.eType.NOT: print("(!)")
 			elif self.type == tParser.tUnry.eType.INV: print("(~)")
+			elif self.type == tParser.tUnry.eType.PTR: print("(^)")
+			elif self.type == tParser.tUnry.eType.AT: print("(@)")
 			else: assert(False and "Unreachable.")
 			self.child.print(indnt + 1)
 	class tFact(tParserObj):
@@ -669,11 +684,18 @@ class tParser(object):
 			exit(1)
 		self.idx += 1
 		return ret
+	def idnt(self):
+		ret = tParser.tIdnt(self.curr())
+		self.idx += 1
+		return ret
 	def prim(self):
 		try:
 			return self.grpng()
 		except ValueError:
-			return self.lit()
+			try:
+				return self.idnt()
+			except ValueError:
+				return self.lit()
 	def unry(self):
 		try:
 			ret = tParser.tUnry(self.curr())
@@ -683,7 +705,7 @@ class tParser(object):
 			self.idx += 1
 			ret.child = self.unry()
 			return ret
-	def fact(self):
+	def factold(self):
 		ret = self.unry()
 		try:
 			ret2 = tParser.tFact(self.curr())
@@ -692,63 +714,74 @@ class tParser(object):
 		else:
 			self.idx += 1
 			ret2.lhs = ret
-			ret2.rhs = self.fact()
+			ret2.rhs = self.factold()
 			return ret2
+	def fact(self):
+		root = self.unry()
+		try:
+			while True:
+				tmp = tParser.tFact(self.curr())
+				self.idx += 1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.unry()
+		except ValueError, IndexError:
+			return root
 	def term(self):
-		ret = self.fact()
+		root = self.fact()
 		try:
-			ret2 = tParser.tTerm(self.curr())
+			while True:
+				tmp = tParser.tTerm(self.curr())
+				self.idx += 1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.fact()
 		except ValueError, IndexError:
-			return ret
-		else:
-			self.idx += 1
-			ret2.lhs = ret
-			ret2.rhs = self.term()
-			return ret2
+			return root
 	def btws(self):
-		ret = self.term()
+		root = self.term()
 		try:
-			ret2 = tParser.tBtws(self.curr())
+			while True:
+				tmp = tParser.tBtws(self.curr())
+				self.idx += 1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.term()
 		except ValueError, IndexError:
-			return ret
-		else:
-			self.idx += 1
-			ret2.lhs = ret
-			ret2.rhs = self.btws()
-			return ret2
+			return root
 	def shft(self):
-		ret = self.btws()
+		root = self.btws()
 		try:
-			ret2 = tParser.tShft(self.curr())
+			while True:
+				tmp = tParser.tShft(self.curr())
+				self.idx += 1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.btws()
 		except ValueError, IndexError:
-			return ret
-		else:
-			self.idx += 1
-			ret2.lhs = ret
-			ret2.rhs = self.shft()
-			return ret2
+			return root
 	def comp(self):
-		ret = self.shft()
+		root = self.shft()
 		try:
-			ret2 = tParser.tComp(self.curr())
+			while True:
+				tmp = tParser.tComp(self.curr())
+				self.idx += 1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.shft()
 		except ValueError, IndexError:
-			return ret
-		else:
-			self.idx += 1
-			ret2.lhs = ret
-			ret2.rhs = self.comp()
-			return ret2
+			return root
 	def eqlt(self):
-		ret = self.comp()
+		root = self.comp()
 		try:
-			ret2 = tParser.tEqlt(self.curr())
+			while True:
+				tmp = tParser.tEqlt(self.curr())
+				self.idx += 1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.comp()
 		except ValueError, IndexError:
-			return ret
-		else:
-			self.idx += 1
-			ret2.lhs = ret
-			ret2.rhs = self.eqlt()
-			return ret2
+			return root
 	def expr(self):
 		return self.eqlt()
 	def run(self):

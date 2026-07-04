@@ -1,20 +1,20 @@
 lit => IU | FP | STR | CHR | TRUE | FALSE | NULL
 
-prim => lit
+prim => lit | grpng | IDENT
 
-unry => (PLUS | DASH | EXCLAM | TIL) unry | prim
+unry => (PLUS | DASH | EXCLAM | TIL | CARET | ATSGN) unry | prim
 
-fact => unry ((ASTR | FSLSH | PRCNT) fact)*
+fact => unry ((ASTR | FSLSH | PRCNT) unry)*
 
-term => fact ((PLUS | DASH) term)*
+term => fact ((PLUS | DASH) fact)*
 
-btws => term ((AMP | PIPE | CARET) btws)*
+btws => term ((AMP | PIPE | CARET) term)*
 
-shft => btws ((LTLT | GTGT) shft)*
+shft => btws ((LTLT | GTGT) btws)*
 
-comp => shft ((LT | LTEQ | GT | GTEQ) comp)*
+comp => shft ((LT | LTEQ | GT | GTEQ) shft)*
 
-eqlt => comp ((EQEQ | EXCLAMEQ) eqlt)*
+eqlt => comp ((EQEQ | EXCLAMEQ) comp)*
 
 expr => eqlt
 
