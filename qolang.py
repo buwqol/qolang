@@ -30,13 +30,13 @@ class tTokeniser(object):
 			PLUS=enum.auto()
 			DASH=enum.auto()
 			ASTR=enum.auto()
-			FSLASH=enum.auto()
+			FSLSH=enum.auto()
 			PLUSEQ=enum.auto()
 			DASHEQ=enum.auto()
 			ASTREQ=enum.auto()
-			FSLASHEQ=enum.auto()
-			PERCENT=enum.auto()
-			PERCENTEQ=enum.auto()
+			FSLSHEQ=enum.auto()
+			PRCNT=enum.auto()
+			PRCNTEQ=enum.auto()
 			CARET=enum.auto()
 			CARETEQ=enum.auto()
 			AMP=enum.auto()
@@ -77,6 +77,8 @@ class tTokeniser(object):
 			LITTRUE=enum.auto()
 			LITFALSE=enum.auto()
 			LITNULL=enum.auto()
+
+			# TODO: EOF lexeme?
 
 		def __init__(self, type, rawValue, fileName, lineNum, colNum, calcInt=0, calcFlt=0.0, calcStr=[]):
 			self.type = type
@@ -382,15 +384,15 @@ class tTokeniser(object):
 			elif self.curr == '/':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tTokeniser.tLex.eType.FSLASHEQ, '/=')
+					self.add(tTokeniser.tLex.eType.FSLSHEQ, '/=')
 					self.nxt()
-				else: self.add(tTokeniser.tLex.eType.FSLASH)
+				else: self.add(tTokeniser.tLex.eType.FSLSH)
 			elif self.curr == '%':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
-					self.add(tTokeniser.tLex.eType.PERCENTEQ, '%=')
+					self.add(tTokeniser.tLex.eType.PRCNTEQ, '%=')
 					self.nxt()
-				else: self.add(tTokeniser.tLex.eType.PERCENT)
+				else: self.add(tTokeniser.tLex.eType.PRCNT)
 			elif self.curr == '&':
 				ahdChar = self.ahd()
 				if ahdChar == '=':
@@ -483,8 +485,8 @@ class tParser(object):
 			elif lexeme.type == tTokeniser.tLex.eType.LITNULL: self.type = tParser.tLit.eType.NULL
 			else: raise ValueError
 		def print(self, indnt: int=0):
-			for _ in range (indnt): print('\t',end='')
-			print('LITERAL', end='')
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tLit.eType.IU: print("(IU) " + str(self.lexeme.calcInt))
 			elif self.type == tParser.tLit.eType.FP: print("(FP) " + str(self.lexeme.calcFlt))
 			elif self.type == tParser.tLit.eType.STR: print("(STR) " + self.lexeme.calcStr)
@@ -501,15 +503,15 @@ class tParser(object):
 			INV=enum.auto()
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			self.child: tParser.tUnry | tParser.tPrim
+			self.child: tParser.tParserObj
 			if lexeme.type == tTokeniser.tLex.eType.PLUS: self.type = tParser.tUnry.eType.POS
 			elif lexeme.type == tTokeniser.tLex.eType.DASH: self.type = tParser.tUnry.eType.NEG
 			elif lexeme.type == tTokeniser.tLex.eType.EXCLAM: self.type = tParser.tUnry.eType.NOT
 			elif lexeme.type == tTokeniser.tLex.eType.TIL: self.type = tParser.tUnry.eType.INV
 			else: raise ValueError
 		def print(self, indnt: int=0):
-			for _ in range (indnt): print('\t',end='')
-			print('UNARY', end='')
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tUnry.eType.POS: print("(+)")
 			elif self.type == tParser.tUnry.eType.NEG: print("(-)")
 			elif self.type == tParser.tUnry.eType.NOT: print("(!)")
@@ -523,18 +525,122 @@ class tParser(object):
 			MOD=enum.auto()
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			self.lhs: tParser.tUnry | tParser.tPrim
-			self.rhs: tParser.tUnry | tParser.tPrim | tParser.tFact
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
 			if lexeme.type == tTokeniser.tLex.eType.ASTR: self.type = tParser.tFact.eType.MUL
-			elif lexeme.type == tTokeniser.tLex.eType.FSLASH: self.type = tParser.tFact.eType.DIV
-			elif lexeme.type == tTokeniser.tLex.eType.PERCENT: self.type = tParser.tFact.eType.MOD
+			elif lexeme.type == tTokeniser.tLex.eType.FSLSH: self.type = tParser.tFact.eType.DIV
+			elif lexeme.type == tTokeniser.tLex.eType.PRCNT: self.type = tParser.tFact.eType.MOD
 			else: raise ValueError
 		def print(self, indnt: int=0):
-			for _ in range (indnt): print('\t',end='')
-			print('FACTOR', end='')
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tFact.eType.MUL: print("(*)")
 			elif self.type == tParser.tFact.eType.DIV: print("(/)")
 			elif self.type == tParser.tFact.eType.MOD: print("(%)")
+			else: assert(False and "Unreachable.")
+			self.lhs.print(indnt + 1)
+			self.rhs.print(indnt + 1)
+	class tTerm(tParserObj):
+		class eType(enum.Enum):
+			ADD=enum.auto()
+			SUB=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+			if lexeme.type == tTokeniser.tLex.eType.PLUS: self.type = tParser.tTerm.eType.ADD
+			elif lexeme.type == tTokeniser.tLex.eType.DASH: self.type = tParser.tTerm.eType.SUB
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			if self.type == tParser.tTerm.eType.ADD: print("(+)")
+			elif self.type == tParser.tTerm.eType.SUB: print("(-)")
+			else: assert(False and "Unreachable.")
+			self.lhs.print(indnt + 1)
+			self.rhs.print(indnt + 1)
+	class tBtws(tParserObj):
+		class eType(enum.Enum):
+			AND=enum.auto()
+			OR=enum.auto()
+			XOR=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+			if lexeme.type == tTokeniser.tLex.eType.AMP: self.type = tParser.tBtws.eType.AND
+			elif lexeme.type == tTokeniser.tLex.eType.PIPE: self.type = tParser.tBtws.eType.OR
+			elif lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tBtws.eType.XOR
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			if self.type == tParser.tBtws.eType.AND: print("(&)")
+			elif self.type == tParser.tBtws.eType.OR: print("(|)")
+			elif self.type == tParser.tBtws.eType.XOR: print("(^)")
+			else: assert(False and "Unreachable.")
+			self.lhs.print(indnt + 1)
+			self.rhs.print(indnt + 1)
+	class tShft(tParserObj):
+		class eType(enum.Enum):
+			LSHF=enum.auto()
+			RSHF=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+			if lexeme.type == tTokeniser.tLex.eType.LTLT: self.type = tParser.tShft.eType.LSHF
+			elif lexeme.type == tTokeniser.tLex.eType.GTGT: self.type = tParser.tShft.eType.RSHF
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			if self.type == tParser.tShft.eType.LSHF: print("(<<)")
+			elif self.type == tParser.tShft.eType.RSHF: print("(>>)")
+			else: assert(False and "Unreachable.")
+			self.lhs.print(indnt + 1)
+			self.rhs.print(indnt + 1)
+	class tComp(tParserObj):
+		class eType(enum.Enum):
+			LS=enum.auto()
+			LSEQ=enum.auto()
+			GR=enum.auto()
+			GREQ=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+			if lexeme.type == tTokeniser.tLex.eType.LT: self.type = tParser.tComp.eType.LS
+			elif lexeme.type == tTokeniser.tLex.eType.LTEQ: self.type = tParser.tComp.eType.LSEQ
+			elif lexeme.type == tTokeniser.tLex.eType.GT: self.type = tParser.tComp.eType.GR
+			elif lexeme.type == tTokeniser.tLex.eType.GTEQ: self.type = tParser.tComp.eType.GREQ
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			if self.type == tParser.tComp.eType.LS: print("(<)")
+			elif self.type == tParser.tComp.eType.LSEQ: print("(<=)")
+			elif self.type == tParser.tComp.eType.GR: print("(>)")
+			elif self.type == tParser.tComp.eType.GREQ: print("(>=)")
+			else: assert(False and "Unreachable.")
+			self.lhs.print(indnt + 1)
+			self.rhs.print(indnt + 1)
+	class tEqlt(tParserObj):
+		class eType(enum.Enum):
+			EQUL=enum.auto()
+			NEQUL=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+			if lexeme.type == tTokeniser.tLex.eType.EQEQ: self.type = tParser.tEqlt.eType.EQUL
+			elif lexeme.type == tTokeniser.tLex.eType.EXCLAMEQ: self.type = tParser.tEqlt.eType.NEQUL
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			if self.type == tParser.tEqlt.eType.EQUL: print("(==)")
+			elif self.type == tParser.tEqlt.eType.NEQUL: print("(!=)")
 			else: assert(False and "Unreachable.")
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
@@ -552,30 +658,102 @@ class tParser(object):
 		ret = tParser.tLit(self.curr())
 		self.idx += 1
 		return ret
+	def grpng(self):
+		startLine = self.curr().lineNum
+		startCol = self.curr().colNum
+		if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise ValueError
+		self.idx += 1
+		ret = self.expr()
+		if self.curr().type != tTokeniser.tLex.eType.RPAREN:
+			print(f'ERR: Unclosed parenthesis started @ {self.curr().fileName, startLine, startCol}.')
+			exit(1)
+		self.idx += 1
+		return ret
 	def prim(self):
-		return self.lit()
+		try:
+			return self.grpng()
+		except ValueError:
+			return self.lit()
 	def unry(self):
 		try:
 			ret = tParser.tUnry(self.curr())
+		except ValueError:
+			return self.prim()
+		else:
 			self.idx += 1
 			ret.child = self.unry()
 			return ret
-		except ValueError:
-			return self.prim()
 	def fact(self):
 		ret = self.unry()
 		try:
 			ret2 = tParser.tFact(self.curr())
-			self.idx += 1
 		except ValueError, IndexError:
 			return ret
 		else:
+			self.idx += 1
 			ret2.lhs = ret
 			ret2.rhs = self.fact()
 			return ret2
+	def term(self):
+		ret = self.fact()
+		try:
+			ret2 = tParser.tTerm(self.curr())
+		except ValueError, IndexError:
+			return ret
+		else:
+			self.idx += 1
+			ret2.lhs = ret
+			ret2.rhs = self.term()
+			return ret2
+	def btws(self):
+		ret = self.term()
+		try:
+			ret2 = tParser.tBtws(self.curr())
+		except ValueError, IndexError:
+			return ret
+		else:
+			self.idx += 1
+			ret2.lhs = ret
+			ret2.rhs = self.btws()
+			return ret2
+	def shft(self):
+		ret = self.btws()
+		try:
+			ret2 = tParser.tShft(self.curr())
+		except ValueError, IndexError:
+			return ret
+		else:
+			self.idx += 1
+			ret2.lhs = ret
+			ret2.rhs = self.shft()
+			return ret2
+	def comp(self):
+		ret = self.shft()
+		try:
+			ret2 = tParser.tComp(self.curr())
+		except ValueError, IndexError:
+			return ret
+		else:
+			self.idx += 1
+			ret2.lhs = ret
+			ret2.rhs = self.comp()
+			return ret2
+	def eqlt(self):
+		ret = self.comp()
+		try:
+			ret2 = tParser.tEqlt(self.curr())
+		except ValueError, IndexError:
+			return ret
+		else:
+			self.idx += 1
+			ret2.lhs = ret
+			ret2.rhs = self.eqlt()
+			return ret2
+	def expr(self):
+		return self.eqlt()
 	def run(self):
 		try:
-			self.tree = self.fact()
+			self.tree = self.expr()
 		except ValueError:
 			print(f'ERR: Unexpected token encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
