@@ -1,4 +1,4 @@
-lit => IU | FP | STR | CHR | TRUE | FALSE | NULL
+lit => LITIU | LITFP | LITSTR | LITCHR | KWTRUE | KWFALSE | KWNULL
 
 prim => lit | IDENT | LPAREN expr RPAREN
 
@@ -19,3 +19,17 @@ comp => shft ((LT | LTEQ | GT | GTEQ) shft)\*
 eqlt => comp ((EQEQ | EXCLAMEQ) comp)\*
 
 expr => eqlt
+
+rtrn => KWRET expr
+
+cndbdy => NEWLINE\* (stmnt | blck)
+
+cnd => KWIF expr cndbdy
+
+stmnt => (expr | rtrn | blck | KWBRK | cnd)
+
+stlst => (stmnt (NEWLINE+ stmnt)*)?
+
+blck => LBRACE NEWLINE\* stlst NEWLINE\* RBRACE
+
+prog => NEWLINE\* stlst NEWLINE\*
