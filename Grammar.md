@@ -26,7 +26,9 @@ cndbdy => NEWLINE\* (stmnt | blck)
 
 cnd => KWIF expr cndbdy
 
-stmnt => (expr | rtrn | blck | KWBRK | cnd)
+assgn => IDENT EQ (assgn | expr)
+
+stmnt => (assgn | expr | rtrn | blck | KWBRK | cnd)
 
 stlst => (stmnt (NEWLINE+ stmnt)*)?
 

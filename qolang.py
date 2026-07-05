@@ -712,6 +712,7 @@ class tParser(object):
 			else: assert(False and "Unreachable.")
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
+	class tExpr(tEqlt): pass
 	class tRtrn(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
@@ -772,6 +773,17 @@ class tParser(object):
 			elif self.type == tParser.tCnd.eType.ELSE: print("(ELSE)")
 			self.bdy.print(indnt + 1)
 			if self.child is not None: self.child.print(indnt)
+	class tAssgn(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if self.lexeme.type != tTokeniser.tLex.eType.EQ: raise ValueError
+			self.lhs: tParser.tIdnt
+			self.rhs: tParser.tParserObj
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.lhs.print(indnt + 1)
+			self.rhs.print(indnt + 1)
 	def __init__(self):
 		self.idx = 0
 		self.lexemes = []
@@ -782,6 +794,8 @@ class tParser(object):
 		self.lexemes = t.lexemes.copy()
 	def curr(self) -> tTokeniser.tLex:
 		return self.lexemes[self.idx]
+	def trim(self):
+		while self.idx < len(self.lexemes) and self.curr().type == tTokeniser.tLex.eType.NEWLINE: self.idx+=1
 	def lit(self):
 		ret = tParser.tLit(self.curr())
 		self.idx+=1
@@ -929,21 +943,24 @@ class tParser(object):
 		return ret
 	def stmnt(self):
 		try:
-			ret = self.expr()
+			ret = self.assgn()
 		except ValueError:
 			try:
-				ret = self.rtrn()
+				ret = self.expr()
 			except ValueError:
 				try:
-					ret = self.brk()
+					ret = self.rtrn()
 				except ValueError:
 					try:
-						ret = self.blck()
+						ret = self.brk()
 					except ValueError:
 						try:
-							ret = self.cnd()
+							ret = self.blck()
 						except ValueError:
-							return None
+							try:
+								ret = self.cnd()
+							except ValueError:
+								return None
 		return ret
 	def stlst(self):
 		ret = tParser.tStLst()
@@ -988,8 +1005,20 @@ class tParser(object):
 			exit(1)
 		ret.bdy = retBdy
 		return ret
-	def trim(self):
-		while self.idx < len(self.lexemes) and self.curr().type == tTokeniser.tLex.eType.NEWLINE: self.idx+=1
+	def assgn(self):
+		try:
+			if self.lexemes[self.idx + 1].type != tTokeniser.tLex.eType.EQ:
+				raise ValueError
+		except IndexError: raise ValueError
+		retLhs = self.idnt()
+		ret = tParser.tAssgn(self.curr())
+		self.idx+=1
+		ret.lhs = retLhs
+		try:
+			ret.rhs = self.assgn()
+		except ValueError:
+			ret.rhs = self.expr()
+		return ret
 	def prog(self):
 		self.trim()
 		ret = self.stlst()
