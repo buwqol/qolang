@@ -1,5 +1,6 @@
 if 1 or 2 and 3
 {
+	a += 1
 }
 ; Our program's entry point.
 ; Entry(num: tIS32, val: ^^tChr): tIS32

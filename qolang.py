@@ -792,14 +792,45 @@ class tParser(object):
 				print('(ELSE)')
 				self.elseBdy.print(indnt+1)
 	class tAssgn(tParserObj):
+		class eType(enum.Enum):
+			EQ=enum.auto()
+			ADD=enum.auto()
+			SUB=enum.auto()
+			MUL=enum.auto()
+			DIV=enum.auto()
+			AND=enum.auto()
+			OR=enum.auto()
+			EOR=enum.auto()
+			MOD=enum.auto()
+			NOT=enum.auto()
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type != tTokeniser.tLex.eType.EQ: raise ValueError
+			if self.lexeme.type == tTokeniser.tLex.eType.EQ: self.type = tParser.tAssgn.eType.EQ
+			elif self.lexeme.type == tTokeniser.tLex.eType.PLUSEQ: self.type = tParser.tAssgn.eType.ADD
+			elif self.lexeme.type == tTokeniser.tLex.eType.DASHEQ: self.type = tParser.tAssgn.eType.SUB
+			elif self.lexeme.type == tTokeniser.tLex.eType.ASTREQ: self.type = tParser.tAssgn.eType.MUL
+			elif self.lexeme.type == tTokeniser.tLex.eType.FSLSHEQ: self.type = tParser.tAssgn.eType.DIV
+			elif self.lexeme.type == tTokeniser.tLex.eType.AMPEQ: self.type = tParser.tAssgn.eType.AND
+			elif self.lexeme.type == tTokeniser.tLex.eType.PIPEEQ: self.type = tParser.tAssgn.eType.OR
+			elif self.lexeme.type == tTokeniser.tLex.eType.CARETEQ: self.type = tParser.tAssgn.eType.EOR
+			elif self.lexeme.type == tTokeniser.tLex.eType.PRCNTEQ: self.type = tParser.tAssgn.eType.MOD
+			elif self.lexeme.type == tTokeniser.tLex.eType.TILEQ: self.type = tParser.tAssgn.eType.NOT
+			else: raise ValueError
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
-			print(str(type(self)).split('.')[-1][1:-2])
+			print(str(type(self)).split('.')[-1][1:-2],end='')
+			if self.type == tParser.tAssgn.eType.EQ: print('(=)')
+			elif self.type == tParser.tAssgn.eType.ADD: print('(+=)')
+			elif self.type == tParser.tAssgn.eType.SUB: print('(-=)')
+			elif self.type == tParser.tAssgn.eType.MUL: print('(*=)')
+			elif self.type == tParser.tAssgn.eType.DIV: print('(/=)')
+			elif self.type == tParser.tAssgn.eType.AND: print('(&=)')
+			elif self.type == tParser.tAssgn.eType.OR: print('(|=)')
+			elif self.type == tParser.tAssgn.eType.EOR: print('(^=)')
+			elif self.type == tParser.tAssgn.eType.MOD: print('(%=)')
+			elif self.type == tParser.tAssgn.eType.NOT: print('(~=)')
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
 	class tTyp(tParserObj):
