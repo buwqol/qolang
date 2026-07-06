@@ -333,6 +333,7 @@ class tTokeniser(object):
 			elif self.curr == '.': self.add(tTokeniser.tLex.eType.PERIOD)
 			elif self.curr == '{': self.add(tTokeniser.tLex.eType.LBRACE)
 			elif self.curr == '}': self.add(tTokeniser.tLex.eType.RBRACE)
+			elif self.curr == '@': self.add(tTokeniser.tLex.eType.ATSGN)
 			elif self.curr == '[':
 				self.brackDepth += 1
 				self.add(tTokeniser.tLex.eType.LBRACK)
@@ -795,7 +796,7 @@ class tParser(object):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
 			if self.lexeme.type != tTokeniser.tLex.eType.EQ: raise ValueError
-			self.lhs: tParser.tIdnt
+			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
@@ -1176,12 +1177,13 @@ class tParser(object):
 			ret.elseBdy = elseBdy
 		return ret
 	def assgn(self):
+		idx = self.idx
+		retLhs = self.unry()
 		try:
-			if self.lexemes[self.idx + 1].type != tTokeniser.tLex.eType.EQ:
-				raise ValueError
-		except IndexError: raise ValueError
-		retLhs = self.idnt()
-		ret = tParser.tAssgn(self.curr())
+			ret = tParser.tAssgn(self.curr())
+		except (ValueError, IndexError) as exp:
+			self.idx = idx
+			raise exp
 		self.idx+=1
 		ret.lhs = retLhs
 		try:

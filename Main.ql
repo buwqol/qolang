@@ -1,4 +1,11 @@
-while (1:^[1]^[2]tFP32):tIU32 { a = arr[fnc().fld] } else a = 3
+if ^^^^(someVariable:^[1]^[2]tFP32) == 0.0
+{
+	^(a.field) = 1
+}
+else
+{
+	^a = 3
+}
 ; Our program's entry point.
 ; Entry(num: tIS32, val: ^^tChr): tIS32
 ; {
