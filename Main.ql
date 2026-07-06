@@ -1,4 +1,4 @@
-if 1 a = 2 else a = 3
+while 1 { a = arr[fnc().fld] } else a = 3
 ; Our program's entry point.
 ; Entry(num: tIS32, val: ^^tChr): tIS32
 ; {

@@ -770,6 +770,23 @@ class tParser(object):
 				print('(ELIF)')
 				self.cnd.print(indnt + 1)
 				self.bdy.print(indnt + 1)
+	class tLoop(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if self.lexeme.type != tTokeniser.tLex.eType.KWWHILE: raise ValueError
+			self.cnd: tParser.tParserObj
+			self.bdy: tParser.tParserObj
+			self.elseBdy: tParser.tParserObj | None = None
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2], end='')
+			print('(WHILE)')
+			self.cnd.print(indnt + 1)
+			self.bdy.print(indnt + 1)
+			if self.elseBdy is not None:
+				print(str(type(self)).split('.')[-1][1:-2], end='')
+				print('(ELSE)')
+				self.elseBdy.print(indnt + 1)
 	class tAssgn(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
@@ -939,25 +956,20 @@ class tParser(object):
 		self.idx += 1
 		return ret
 	def stmnt(self):
-		try:
-			ret = self.assgn()
+		try: ret = self.assgn()
 		except ValueError:
-			try:
-				ret = self.expr()
+			try: ret = self.expr()
 			except ValueError:
-				try:
-					ret = self.rtrn()
+				try: ret = self.rtrn()
 				except ValueError:
-					try:
-						ret = self.brk()
+					try: ret = self.brk()
 					except ValueError:
-						try:
-							ret = self.blck()
+						try: ret = self.blck()
 						except ValueError:
-							try:
-								ret = self.cnd()
+							try: ret = self.cnd()
 							except ValueError:
-								return None
+								try: ret = self.loop()
+								except ValueError: return None
 		return ret
 	def stlst(self):
 		ret = tParser.tStLst()
@@ -982,33 +994,32 @@ class tParser(object):
 		ret.fnsh(self.curr())
 		self.idx+=1
 		return ret # I might change this to just return `ret.child`, depending on the later steps.
+	def cndbdy(self):
+		self.trim()
+		try:
+			ret = self.blck()
+		except ValueError:
+			ret = self.stmnt()
+		return ret
 	def cnd(self):
-		def bdy():
-			self.trim()
-			try:
-				ret = self.blck()
-			except ValueError:
-				ret = self.stmnt()
-			return ret
 		ret = tParser.tCnd(self.curr())
 		if ret.type != tParser.tCnd.eType.IF:
 			print(f'ERR: `elif` and `else` are not permitted before encountering `if` @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
 		self.idx+=1
 		ret.cnd = self.expr()
-		retBdy = bdy()
+		retBdy = self.cndbdy()
 		if retBdy is None:
 			print(f'ERR: Expected body following `if` conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
 		ret.bdy = retBdy
 		self.trim()
-		if self.curr().type == tTokeniser.tLex.eType.NEWLINE: self.trim()
 		while self.curr().type == tTokeniser.tLex.eType.KWELIF:
 			self.trim()
 			child = tParser.tCnd(self.curr())
 			self.idx+=1
 			child.cnd = self.expr()
-			childBdy = bdy()
+			childBdy = self.cndbdy()
 			if childBdy is None:
 				print(f'ERR: Expected body following `elif` conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				exit(1)
@@ -1017,7 +1028,25 @@ class tParser(object):
 		self.trim()
 		if self.curr().type == tTokeniser.tLex.eType.KWELSE:
 			self.idx+=1
-			elseBdy = bdy()
+			elseBdy = self.cndbdy()
+			if elseBdy is None:
+				print(f'ERR: Expected body following `else` conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				exit(1)
+			ret.elseBdy = elseBdy
+		return ret
+	def loop(self):
+		ret = tParser.tLoop(self.curr())
+		self.idx+=1
+		ret.cnd = self.expr()
+		retBdy = self.cndbdy()
+		if retBdy is None:
+			print(f'ERR: Expected body following `while` loop @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			exit(1)
+		ret.bdy = retBdy
+		self.trim()
+		if self.curr().type == tTokeniser.tLex.eType.KWELSE:
+			self.idx+=1
+			elseBdy = self.cndbdy()
 			if elseBdy is None:
 				print(f'ERR: Expected body following `else` conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				exit(1)

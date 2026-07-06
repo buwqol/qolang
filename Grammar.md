@@ -24,11 +24,13 @@ rtrn => KWRET expr
 
 cndbdy => NEWLINE\* (stmnt | blck)
 
-cnd => KWIF expr cndbdy (NEWLINE+ KWELIF expr cndbdy)\* (NEWLINE+ KWELSE cndbdy)?
+cnd => KWIF expr cndbdy (NEWLINE* KWELIF expr cndbdy)\* (NEWLINE* KWELSE cndbdy)?
+
+loop => KWWHILE expr cndbdy (NEWLINE* KWELSE cndbdy)?
 
 assgn => IDENT EQ (assgn | expr)
 
-stmnt => (assgn | expr | rtrn | blck | KWBRK | cnd)
+stmnt => (assgn | expr | rtrn | blck | KWBRK | cnd | loop)
 
 stlst => (stmnt (NEWLINE+ stmnt)*)?
 
