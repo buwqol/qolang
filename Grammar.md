@@ -4,9 +4,9 @@ lit => LITIU | LITFP | LITSTR | LITCHR | KWTRUE | KWFALSE | KWNULL
 
 typ => TIU8 | TIS8 | TIU16 | TIS16 | TIU32 | TIS32 | TIU64 | TIS64 | TFP32 | TFP64 | TBLN | TNONE | TPTR | IDENT
 
-tcst => prim COLON typ
+tcst => COLON typ
 
-prim => lit | IDENT | LPAREN expr RPAREN | tcst
+prim => (lit | IDENT | LPAREN expr RPAREN) tcst?
 
 pstfx => prim (LPAREN (expr (COMMA expr)\*)? RPAREN | LBRACK expr RBRACK | PERIOD IDENT)\*
 

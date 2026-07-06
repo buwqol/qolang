@@ -886,6 +886,16 @@ class tParser(object):
 		ret = tParser.tIdnt(self.curr())
 		self.idx+=1
 		return ret
+	def cst(self):
+		ret = tParser.tCst(self.curr())
+		self.idx+=1
+		try:
+			ret.rhs = self.typ()
+		except ValueError:
+			print(f'ERR: Expected type name after cast @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		return ret
 	def prim(self):
 		try:
 			ret = self.grpng()
@@ -895,17 +905,10 @@ class tParser(object):
 			except ValueError:
 				ret = self.lit()
 		try:
-			cst = tParser.tCst(self.curr())
+			cst = self.cst()
+			cst.lhs = ret
 		except ValueError:
 			return ret
-		cst.lhs = ret
-		self.idx+=1
-		try:
-			cst.rhs = self.typ()
-		except ValueError:
-			print(f'ERR: Expected type name after cast @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
-			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
-			exit(1)
 		return cst
 	def pstfx(self):
 		root = self.prim()
