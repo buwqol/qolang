@@ -839,12 +839,38 @@ class tParser(object):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2],end='')
 			print(f'({self.type.name})')
+	class tMTyp(tParserObj):
+		class eType(enum.Enum):
+			ARR=enum.auto()
+			PTR=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.child: tParser.tTyp | tParser.tMTyp
+			if self.lexeme.type == tTokeniser.tLex.eType.LBRACK:
+				self.type = tParser.tMTyp.eType.ARR
+				self.arrSz: tParser.tParserObj
+			elif self.lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tMTyp.eType.PTR
+			else: raise ValueError
+		def fnsh(self, lexeme: tTokeniser.tLex):
+			if self.type == tParser.tMTyp.eType.ARR and lexeme.type != tTokeniser.tLex.eType.RBRACK:
+				print(f'ERR: Unclosed square bracket started @ {self.lexeme.fileName, self.lexeme.lineNum, self.lexeme.colNum}.')
+				print(f'\tGot {str(lexeme.type).rsplit('.', 1)[-1]} \'{lexeme.rawValue}\' @ {lexeme.fileName}:{lexeme.lineNum}:{lexeme.colNum}.')
+				exit(1)
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2],end='')
+			if self.type == tParser.tMTyp.eType.ARR:
+				print('([])')
+				self.arrSz.print(indnt)
+			else:
+				print('(^)')
+			self.child.print(indnt+1)
 	class tCst(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
 			if (self.lexeme.type != tTokeniser.tLex.eType.COLON): raise ValueError
 			self.lhs: tParser.tParserObj
-			self.rhs: tParser.tTyp
+			self.rhs: tParser.tTyp | tParser.tMTyp
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2])
@@ -870,6 +896,23 @@ class tParser(object):
 		ret = tParser.tTyp(self.curr())
 		self.idx+=1
 		return ret
+	def mtyp(self):
+		try:
+			ret = tParser.tMTyp(self.curr())
+			self.idx+=1
+			if ret.type == tParser.tMTyp.eType.ARR:
+				try:
+					ret.arrSz = self.expr()
+				except ValueError:
+					print(f'ERR: Expected expression within array type @ {self.curr().fileName, self.curr().lineNum, self.curr().colNum}.')
+					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+					exit(1)
+				ret.fnsh(self.curr())
+				self.idx+=1
+			ret.child = self.mtyp()
+		except ValueError:
+			ret = self.typ()
+		return ret
 	def grpng(self):
 		startLine = self.curr().lineNum
 		startCol = self.curr().colNum
@@ -890,7 +933,7 @@ class tParser(object):
 		ret = tParser.tCst(self.curr())
 		self.idx+=1
 		try:
-			ret.rhs = self.typ()
+			ret.rhs = self.mtyp()
 		except ValueError:
 			print(f'ERR: Expected type name after cast @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
@@ -926,6 +969,7 @@ class tParser(object):
 						if self.curr().type == tTokeniser.tLex.eType.RPAREN: break
 						elif len(root.rhs) != 0 and self.curr().type != tTokeniser.tLex.eType.COMMA:
 							print(f'ERR: Expected comma @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum} to separate arguments of function call @ {self.curr().fileName}:{lineNum}:{colNum}.')
+							print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 							exit(1)
 						elif self.curr().type == tTokeniser.tLex.eType.COMMA:
 							self.idx+=1
@@ -1078,12 +1122,14 @@ class tParser(object):
 		ret = tParser.tCnd(self.curr())
 		if ret.type != tParser.tCnd.eType.IF:
 			print(f'ERR: `elif` and `else` are not permitted before encountering `if` @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
 		ret.cnd = self.expr()
 		retBdy = self.cndbdy()
 		if retBdy is None:
 			print(f'ERR: Expected body following `if` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		ret.bdy = retBdy
 		self.trim()
@@ -1095,6 +1141,7 @@ class tParser(object):
 			childBdy = self.cndbdy()
 			if childBdy is None:
 				print(f'ERR: Expected body following `elif` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			child.bdy = childBdy
 			ret.elifs.append(child)
@@ -1104,6 +1151,7 @@ class tParser(object):
 			elseBdy = self.cndbdy()
 			if elseBdy is None:
 				print(f'ERR: Expected body following `else` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			ret.elseBdy = elseBdy
 		return ret
@@ -1114,6 +1162,7 @@ class tParser(object):
 		retBdy = self.cndbdy()
 		if retBdy is None:
 			print(f'ERR: Expected body following `while` loop @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		ret.bdy = retBdy
 		self.trim()
@@ -1122,6 +1171,7 @@ class tParser(object):
 			elseBdy = self.cndbdy()
 			if elseBdy is None:
 				print(f'ERR: Expected body following `else` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			ret.elseBdy = elseBdy
 		return ret
@@ -1140,6 +1190,7 @@ class tParser(object):
 			try: ret.rhs = self.expr()
 			except:
 				print(f'ERR: Unexpected lexeme encountered following assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 		return ret
 	def prog(self):

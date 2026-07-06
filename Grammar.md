@@ -1,8 +1,8 @@
 lit => LITIU | LITFP | LITSTR | LITCHR | KWTRUE | KWFALSE | KWNULL
 
-<!-- typ => CARET typ | LBRACK expr? RBRACK typ | (TIU8 | TIS8 | TIU16 | TIS16 | TIU32 | TIS32 | TIU64 | TIS64 | TFP32 | TFP64 | TBLN | TNONE | TPTR | IDENT) -->
-
 typ => TIU8 | TIS8 | TIU16 | TIS16 | TIU32 | TIS32 | TIU64 | TIS64 | TFP32 | TFP64 | TBLN | TNONE | TPTR | IDENT
+
+mtyp => CARET mtyp | LBRACK expr RBRACK mtyp | typ
 
 tcst => COLON typ
 
