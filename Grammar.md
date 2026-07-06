@@ -24,7 +24,7 @@ rtrn => KWRET expr
 
 cndbdy => NEWLINE\* (stmnt | blck)
 
-cnd => KWIF expr cndbdy
+cnd => KWIF expr cndbdy (NEWLINE+ KWELIF expr cndbdy)\* (NEWLINE+ KWELSE cndbdy)?
 
 assgn => IDENT EQ (assgn | expr)
 

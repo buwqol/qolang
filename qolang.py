@@ -85,7 +85,7 @@ class tTokeniser(object):
 			LITFALSE=enum.auto()
 			LITNULL=enum.auto()
 
-			# TODO: EOF lexeme?
+			EOF=enum.auto()
 
 		def __init__(self, type, rawValue, fileName, lineNum, colNum, calcInt=0, calcFlt=0.0, calcStr=[]):
 			self.type = type
@@ -481,7 +481,7 @@ class tTokeniser(object):
 			else:
 				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @{self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
-
+		self.add(tTokeniser.tLex.eType.EOF)
 class tParser(object):
 	class tParserObj(abc.ABC):
 		@abc.abstractmethod
@@ -511,14 +511,13 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tLit.eType.IU: print("(IU) " + str(self.lexeme.calcInt))
-			elif self.type == tParser.tLit.eType.FP: print("(FP) " + str(self.lexeme.calcFlt))
-			elif self.type == tParser.tLit.eType.STR: print("(STR) " + self.lexeme.calcStr)
-			elif self.type == tParser.tLit.eType.CHR: print("(CHR) " + str(self.lexeme.calcInt))
-			elif self.type == tParser.tLit.eType.TRUE: print("(TRUE) " + "True")
-			elif self.type == tParser.tLit.eType.FALSE: print("(FALSE) " + "False")
-			elif self.type == tParser.tLit.eType.NULL: print("(NULL) " + "Null")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tLit.eType.IU: print('(IU) ' + str(self.lexeme.calcInt))
+			elif self.type == tParser.tLit.eType.FP: print('(FP) ' + str(self.lexeme.calcFlt))
+			elif self.type == tParser.tLit.eType.STR: print('(STR) ' + self.lexeme.calcStr)
+			elif self.type == tParser.tLit.eType.CHR: print('(CHR) ' + str(self.lexeme.calcInt))
+			elif self.type == tParser.tLit.eType.TRUE: print('(TRUE) True')
+			elif self.type == tParser.tLit.eType.FALSE: print('(FALSE) False')
+			elif self.type == tParser.tLit.eType.NULL: print('(NULL) Null')
 	class tIdnt(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
@@ -550,9 +549,9 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tPstFx.eType.CALL: print("(())")
-			elif self.type == tParser.tPstFx.eType.ARR: print("([])")
-			elif self.type == tParser.tPstFx.eType.ACS: print("(.)")
+			if self.type == tParser.tPstFx.eType.CALL: print('(())')
+			elif self.type == tParser.tPstFx.eType.ARR: print('([])')
+			elif self.type == tParser.tPstFx.eType.ACS: print('(.)')
 			self.lhs.print(indnt + 1)
 			if isinstance(self.rhs, list):
 				for idx in range(len(self.rhs)): self.rhs[idx].print(indnt + 1)
@@ -578,13 +577,12 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tUnry.eType.POS: print("(+)")
-			elif self.type == tParser.tUnry.eType.NEG: print("(-)")
-			elif self.type == tParser.tUnry.eType.NOT: print("(!)")
-			elif self.type == tParser.tUnry.eType.INV: print("(~)")
-			elif self.type == tParser.tUnry.eType.PTR: print("(^)")
-			elif self.type == tParser.tUnry.eType.AT: print("(@)")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tUnry.eType.POS: print('(+)')
+			elif self.type == tParser.tUnry.eType.NEG: print('(-)')
+			elif self.type == tParser.tUnry.eType.NOT: print('(!)')
+			elif self.type == tParser.tUnry.eType.INV: print('(~)')
+			elif self.type == tParser.tUnry.eType.PTR: print('(^)')
+			elif self.type == tParser.tUnry.eType.AT: print('(@)')
 			self.child.print(indnt + 1)
 	class tFact(tParserObj):
 		class eType(enum.Enum):
@@ -602,10 +600,9 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tFact.eType.MUL: print("(*)")
-			elif self.type == tParser.tFact.eType.DIV: print("(/)")
-			elif self.type == tParser.tFact.eType.MOD: print("(%)")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tFact.eType.MUL: print('(*)')
+			elif self.type == tParser.tFact.eType.DIV: print('(/)')
+			elif self.type == tParser.tFact.eType.MOD: print('(%)')
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
 	class tTerm(tParserObj):
@@ -622,9 +619,8 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tTerm.eType.ADD: print("(+)")
-			elif self.type == tParser.tTerm.eType.SUB: print("(-)")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tTerm.eType.ADD: print('(+)')
+			elif self.type == tParser.tTerm.eType.SUB: print('(-)')
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
 	class tBtws(tParserObj):
@@ -643,10 +639,9 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tBtws.eType.AND: print("(&)")
-			elif self.type == tParser.tBtws.eType.OR: print("(|)")
-			elif self.type == tParser.tBtws.eType.XOR: print("(^)")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tBtws.eType.AND: print('(&)')
+			elif self.type == tParser.tBtws.eType.OR: print('(|)')
+			elif self.type == tParser.tBtws.eType.XOR: print('(^)')
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
 	class tShft(tParserObj):
@@ -663,9 +658,8 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tShft.eType.LSHF: print("(<<)")
-			elif self.type == tParser.tShft.eType.RSHF: print("(>>)")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tShft.eType.LSHF: print('(<<)')
+			elif self.type == tParser.tShft.eType.RSHF: print('(>>)')
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
 	class tComp(tParserObj):
@@ -686,11 +680,10 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tComp.eType.LS: print("(<)")
-			elif self.type == tParser.tComp.eType.LSEQ: print("(<=)")
-			elif self.type == tParser.tComp.eType.GR: print("(>)")
-			elif self.type == tParser.tComp.eType.GREQ: print("(>=)")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tComp.eType.LS: print('(<)')
+			elif self.type == tParser.tComp.eType.LSEQ: print('(<=)')
+			elif self.type == tParser.tComp.eType.GR: print('(>)')
+			elif self.type == tParser.tComp.eType.GREQ: print('(>=)')
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
 	class tEqlt(tParserObj):
@@ -707,9 +700,8 @@ class tParser(object):
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tEqlt.eType.EQUL: print("(==)")
-			elif self.type == tParser.tEqlt.eType.NEQUL: print("(!=)")
-			else: assert(False and "Unreachable.")
+			if self.type == tParser.tEqlt.eType.EQUL: print('(==)')
+			elif self.type == tParser.tEqlt.eType.NEQUL: print('(!=)')
 			self.lhs.print(indnt + 1)
 			self.rhs.print(indnt + 1)
 	class tExpr(tEqlt): pass
@@ -760,19 +752,24 @@ class tParser(object):
 			else: raise ValueError
 			self.cnd: tParser.tParserObj
 			self.bdy: tParser.tParserObj
-			self.child: tParser.tCnd | None = None
+			self.elifs = []
+			self.elseBdy: tParser.tParserObj | None = None
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tCnd.eType.IF:
-				print("(IF)")
+				print('(IF)')
 				self.cnd.print(indnt + 1)
+				self.bdy.print(indnt + 1)
+				for idx in range(len(self.elifs)): self.elifs[idx].print(indnt)
+				if self.elseBdy is not None:
+					print(str(type(self)).split('.')[-1][1:-2], end='')
+					print('(ELSE)')
+					self.elseBdy.print(indnt + 1)
 			elif self.type == tParser.tCnd.eType.ELIF:
-				print("(ELIF)")
+				print('(ELIF)')
 				self.cnd.print(indnt + 1)
-			elif self.type == tParser.tCnd.eType.ELSE: print("(ELSE)")
-			self.bdy.print(indnt + 1)
-			if self.child is not None: self.child.print(indnt)
+				self.bdy.print(indnt + 1)
 	class tAssgn(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
@@ -997,13 +994,34 @@ class tParser(object):
 		if ret.type != tParser.tCnd.eType.IF:
 			print(f'ERR: `elif` and `else` are not permitted before encountering `if` @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
-		self.idx += 1
+		self.idx+=1
 		ret.cnd = self.expr()
 		retBdy = bdy()
 		if retBdy is None:
-			print(f'ERR: Expected body following conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected body following `if` conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
 		ret.bdy = retBdy
+		self.trim()
+		if self.curr().type == tTokeniser.tLex.eType.NEWLINE: self.trim()
+		while self.curr().type == tTokeniser.tLex.eType.KWELIF:
+			self.trim()
+			child = tParser.tCnd(self.curr())
+			self.idx+=1
+			child.cnd = self.expr()
+			childBdy = bdy()
+			if childBdy is None:
+				print(f'ERR: Expected body following `elif` conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				exit(1)
+			child.bdy = childBdy
+			ret.elifs.append(child)
+		self.trim()
+		if self.curr().type == tTokeniser.tLex.eType.KWELSE:
+			self.idx+=1
+			elseBdy = bdy()
+			if elseBdy is None:
+				print(f'ERR: Expected body following `else` conditional @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				exit(1)
+			ret.elseBdy = elseBdy
 		return ret
 	def assgn(self):
 		try:
@@ -1017,7 +1035,10 @@ class tParser(object):
 		try:
 			ret.rhs = self.assgn()
 		except ValueError:
-			ret.rhs = self.expr()
+			try: ret.rhs = self.expr()
+			except:
+				print(f'ERR: Unexpected lexeme encountered following assignment @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				exit(1)
 		return ret
 	def prog(self):
 		self.trim()
@@ -1028,12 +1049,11 @@ class tParser(object):
 		try:
 			self.tree = self.prog()
 		except ValueError:
-			print(f'ERR: Unexpected token encountered @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unexpected lexeme encountered @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
 			exit(1)
-		except IndexError: pass
-		if self.idx < len(self.lexemes):
-			print(f'ERR: Unhandled tokens, starting @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+		if self.curr().type != tTokeniser.tLex.eType.EOF:
+			print(f'ERR: Unhandled lexemes, starting @{self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]}.')
 			exit(1)
 	def print(self):
