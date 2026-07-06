@@ -1,10 +1,5 @@
-if ^^^^(someVariable:^[1]^[2]tFP32) == 0.0
+if 1 or 2 and 3
 {
-	^(a.field) = 1
-}
-else
-{
-	^a = 3
 }
 ; Our program's entry point.
 ; Entry(num: tIS32, val: ^^tChr): tIS32

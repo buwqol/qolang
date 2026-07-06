@@ -24,7 +24,11 @@ comp => shft ((LT | LTEQ | GT | GTEQ) shft)\*
 
 eqlt => comp ((EQEQ | EXCLAMEQ) comp)\*
 
-expr => eqlt
+lgca => eqlt (KWAND eqlt)\*
+
+lgco => lgca (KWOR lgca)\*
+
+expr => lgco
 
 rtrn => KWRET expr
 

@@ -44,7 +44,6 @@ class tTokeniser(object):
 			ATSGN=enum.auto()
 			AMP=enum.auto()
 			PIPE=enum.auto()
-			XOR=enum.auto()
 			TIL=enum.auto()
 			AMPEQ=enum.auto()
 			PIPEEQ=enum.auto()
@@ -631,21 +630,21 @@ class tParser(object):
 		class eType(enum.Enum):
 			AND=enum.auto()
 			OR=enum.auto()
-			XOR=enum.auto()
+			EOR=enum.auto()
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 			if lexeme.type == tTokeniser.tLex.eType.AMP: self.type = tParser.tBtws.eType.AND
 			elif lexeme.type == tTokeniser.tLex.eType.PIPE: self.type = tParser.tBtws.eType.OR
-			elif lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tBtws.eType.XOR
+			elif lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tBtws.eType.EOR
 			else: raise ValueError
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tBtws.eType.AND: print('(&)')
 			elif self.type == tParser.tBtws.eType.OR: print('(|)')
-			elif self.type == tParser.tBtws.eType.XOR: print('(^)')
+			elif self.type == tParser.tBtws.eType.EOR: print('(^)')
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
 	class tShft(tParserObj):
@@ -877,6 +876,28 @@ class tParser(object):
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
+	class tLgcA(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if (self.lexeme.type != tTokeniser.tLex.eType.KWAND): raise ValueError
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.lhs.print(indnt+1)
+			self.rhs.print(indnt+1)
+	class tLgcO(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if (self.lexeme.type != tTokeniser.tLex.eType.KWOR): raise ValueError
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.lhs.print(indnt+1)
+			self.rhs.print(indnt+1)
 	def __init__(self):
 		self.idx = 0
 		self.lexemes = []
@@ -1062,8 +1083,30 @@ class tParser(object):
 				root.rhs = self.comp()
 		except ValueError, IndexError:
 			return root
+	def lgca(self):
+		root = self.eqlt()
+		try:
+			while True:
+				tmp = tParser.tLgcA(self.curr())
+				self.idx +=1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.eqlt()
+		except ValueError, IndexError:
+			return root
+	def lgco(self):
+		root = self.lgca()
+		try:
+			while True:
+				tmp = tParser.tLgcO(self.curr())
+				self.idx +=1
+				tmp.lhs = root
+				root = tmp
+				root.rhs = self.lgca()
+		except ValueError, IndexError:
+			return root
 	def expr(self):
-		return self.eqlt()
+		return self.lgco()
 	def rtrn(self):
 		ret = tParser.tRtrn(self.curr())
 		self.idx+=1
