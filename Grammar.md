@@ -42,7 +42,7 @@ assgn => unry EQ (assgn | expr)
 
 cssgn => unry (PLUSEQ | DASHEQ | ASTREQ | FSLSHEQ | PRCNTEQ | AMPEQ | PIPEEQ | CARETEQ | TILEQ) (assgn | expr)
 
-var => IDENT (COMMA NEWLINE* IDENT)\* COLON mtyp (EQ expr)?
+var => IDENT (COMMA NEWLINE* IDENT)\* COLON ((mtyp (EQ expr)?) | (EQ expr))
 
 stmnt => (var | cssgn | assgn | expr | rtrn | blck | KWBRK | cnd | loop)
 
@@ -50,8 +50,8 @@ stlst => (stmnt (NEWLINE+ stmnt)\*)?
 
 blck => LBRACE NEWLINE\* stlst NEWLINE\* RBRACE
 
-<!-- fnc => IDENT LPAREN (IDENT COLON mtyp (COMMA IDENT COLON mtyp)\*)? RPAREN COLON mtyp blck? -->
+arg => IDENT COLON mtyp
 
-prog => NEWLINE\* stlst NEWLINE\*
+fnc => IDENT LPAREN (NEWLINE\* arg (COMMA NEWLINE\* arg)\*)? RPAREN COLON mtyp NEWLINE\* blck?
 
-<!-- prog => NEWLINE\* (fnc | var)\* NEWLINE\* -->
+prog => NEWLINE\* (fnc | var)\* NEWLINE\*

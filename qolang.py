@@ -767,10 +767,12 @@ class tParser(object):
 				self.bdy.print(indnt+1)
 				for idx in range(len(self.elifs)): self.elifs[idx].print(indnt)
 				if self.elseBdy is not None:
+					for _ in range(indnt): print('\t',end='')
 					print(str(type(self)).split('.')[-1][1:-2], end='')
 					print('(ELSE)')
 					self.elseBdy.print(indnt+1)
 			elif self.type == tParser.tCnd.eType.ELIF:
+				for _ in range(indnt): print('\t',end='')
 				print('(ELIF)')
 				self.cnd.print(indnt+1)
 				self.bdy.print(indnt+1)
@@ -788,6 +790,7 @@ class tParser(object):
 			self.cnd.print(indnt+1)
 			self.bdy.print(indnt+1)
 			if self.elseBdy is not None:
+				for _ in range(indnt): print('\t',end='')
 				print(str(type(self)).split('.')[-1][1:-2], end='')
 				print('(ELSE)')
 				self.elseBdy.print(indnt+1)
@@ -940,14 +943,36 @@ class tParser(object):
 	class tVar(tParserObj):
 		def __init__(self):
 			self.vars = []
-			self.type: tParser.tParserObj | None
-			self.val: tParser.tParserObj | None
+			self.type: tParser.tParserObj | None = None
+			self.val: tParser.tParserObj | None = None
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2])
 			for var in self.vars: var.print(indnt+1)
 			if self.type is not None: self.type.print(indnt+1)
 			if self.val is not None: self.val.print(indnt+1)
+	class tFnc(tParserObj):
+		def __init__(self):
+			self.idnt: tParser.tIdnt
+			self.args = []
+			self.type: tParser.tParserObj
+			self.bdy: tParser.tParserObj | None = None
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.idnt.print(indnt+1)
+			for arg in self.args: arg.print(indnt+1)
+			self.type.print(indnt+1)
+			if self.bdy is not None: self.bdy.print(indnt+1)
+	class tArg(tParserObj):
+		def __init__(self):
+			self.idnt: tParser.tIdnt
+			self.type: tParser.tParserObj
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.idnt.print(indnt+1)
+			self.type.print(indnt+1)
 	def __init__(self):
 		self.idx = 0
 		self.lexemes = []
@@ -1173,25 +1198,83 @@ class tParser(object):
 					exit(1)
 			if self.curr().type == tTokeniser.tLex.eType.COLON:
 				self.idx+=1
-				try:
-					ret.type = self.mtyp()
-				except ValueError:
-					print(f'Expected colon in variable declaration @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
-					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
-					exit(1)
+				if self.curr().type == tTokeniser.tLex.eType.EQ: ret.type = None
+				else:
+					try:
+						ret.type = self.mtyp()
+					except ValueError:
+						print(f'ERR: Expected colon in variable declaration @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+						print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+						exit(1)
 			else: raise ValueError
 			if self.curr().type == tTokeniser.tLex.eType.EQ:
 				self.idx+=1
 				try:
 					ret.val = self.expr()
 				except ValueError:
-					print(f'Expected expresion following assignment operator in variable definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					print(f'ERR: Expected expresion following assignment operator in variable definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 					exit(1)
 			return ret
-		except Exception as e:
+		except ValueError:
 			self.idx = strt
-			raise e
+			raise ValueError
+	def arg(self):
+		ret = tParser.tArg()
+		try: ret.idnt = self.idnt()
+		except ValueError:
+			print(f'ERR: Invalid identifier for argument name in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		if self.curr().type != tTokeniser.tLex.eType.COLON:
+			print(f'ERR: Expected colon in argument for function argument definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.idx+=1
+		try: ret.type = self.mtyp()
+		except ValueError:
+			print(f'ERR: Invalid argument type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		return ret
+	def fnc(self):
+		strt = self.idx
+		try:
+			ret = tParser.tFnc()
+			ret.idnt = self.idnt()
+			if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise ValueError
+			self.idx+=1
+			self.trim()
+			try:
+				ret.args.append(self.arg())
+				while self.curr().type == tTokeniser.tLex.eType.COMMA:
+					self.idx+=1
+					self.trim()
+					ret.args.append(self.arg())
+			except ValueError: pass
+			if self.curr().type != tTokeniser.tLex.eType.RPAREN:
+				print(f'ERR: Expected closing parenthesis during function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+				exit(1)
+			self.idx+=1
+			if self.curr().type != tTokeniser.tLex.eType.COLON:
+				print(f'ERR: Expected colon for function return type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+				exit(1)
+			self.idx+=1
+			try:
+				ret.type = self.mtyp()
+			except ValueError:
+				print(f'ERR: Invalid type for function return type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+				exit(1)
+			self.trim()
+			try: ret.bdy = self.blck()
+			except ValueError: ret.bdy = None
+			return ret
+		except ValueError:
+			self.idx = strt
+			raise ValueError
 	def rtrn(self):
 		ret = tParser.tRtrn(self.curr())
 		self.idx+=1
@@ -1348,12 +1431,17 @@ class tParser(object):
 		return ret
 	def prog(self):
 		self.trim()
-		ret = self.stlst()
+		ret = []
+		while True:
+			self.trim()
+			if self.curr().type == tTokeniser.tLex.eType.EOF: break
+			try: ret.append(self.fnc())
+			except ValueError: ret.append(self.var())
 		self.trim()
 		return ret
 	def run(self):
 		try:
-			self.tree = self.prog()
+			self.brnchs = self.prog()
 		except ValueError:
 			print(f'ERR: Unexpected lexeme encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
@@ -1363,7 +1451,7 @@ class tParser(object):
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 	def print(self):
-		if self.tree is not None: self.tree.print()
+		for brnch in self.brnchs: brnch.print()
 
 if __name__ == '__main__':
 	argParser = argparse.ArgumentParser(prog='qolang', description='qolang language compiler.')
@@ -1377,5 +1465,4 @@ if __name__ == '__main__':
 		parser = tParser()
 		parser.lex(fileName)
 		parser.run()
-		if parser.tree is None: continue
 		parser.print()
