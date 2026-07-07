@@ -72,6 +72,8 @@ class tTokeniser(object):
 			TIS64=enum.auto()
 			TFP32=enum.auto()
 			TFP64=enum.auto()
+			TUSZ=enum.auto()
+			TSSZ=enum.auto()
 			TBLN=enum.auto()
 			TNONE=enum.auto()
 			TPTR=enum.auto()
@@ -265,6 +267,8 @@ class tTokeniser(object):
 		elif self.stack == 'tIS64': self.add(tTokeniser.tLex.eType.TIS64, self.stack, lineNum, colNum)
 		elif self.stack == 'tFP32': self.add(tTokeniser.tLex.eType.TFP32, self.stack, lineNum, colNum)
 		elif self.stack == 'tFP64': self.add(tTokeniser.tLex.eType.TFP64, self.stack, lineNum, colNum)
+		elif self.stack == 'tUSz': self.add(tTokeniser.tLex.eType.TUSZ, self.stack, lineNum, colNum)
+		elif self.stack == 'tSSz': self.add(tTokeniser.tLex.eType.TSSZ, self.stack, lineNum, colNum)
 		elif self.stack == 'tBln': self.add(tTokeniser.tLex.eType.TBLN, self.stack, lineNum, colNum)
 		elif self.stack == 'tNone': self.add(tTokeniser.tLex.eType.TNONE, self.stack, lineNum, colNum)
 		elif self.stack == 'tPtr': self.add(tTokeniser.tLex.eType.TPTR, self.stack, lineNum, colNum)
@@ -857,6 +861,8 @@ class tParser(object):
 			IS64=enum.auto()
 			FP32=enum.auto()
 			FP64=enum.auto()
+			USZ=enum.auto()
+			SSZ=enum.auto()
 			BLN=enum.auto()
 			NONE=enum.auto()
 			PTR=enum.auto()
@@ -873,6 +879,8 @@ class tParser(object):
 			elif self.lexeme.type == tTokeniser.tLex.eType.TIS64: self.type = tParser.tTyp.eType.IS64
 			elif self.lexeme.type == tTokeniser.tLex.eType.TFP32: self.type = tParser.tTyp.eType.FP32
 			elif self.lexeme.type == tTokeniser.tLex.eType.TFP64: self.type = tParser.tTyp.eType.FP64
+			elif self.lexeme.type == tTokeniser.tLex.eType.TUSZ: self.type = tParser.tTyp.eType.USZ
+			elif self.lexeme.type == tTokeniser.tLex.eType.TSSZ: self.type = tParser.tTyp.eType.SSZ
 			elif self.lexeme.type == tTokeniser.tLex.eType.TBLN: self.type = tParser.tTyp.eType.BLN
 			elif self.lexeme.type == tTokeniser.tLex.eType.TNONE: self.type = tParser.tTyp.eType.NONE
 			elif self.lexeme.type == tTokeniser.tLex.eType.TPTR: self.type = tParser.tTyp.eType.PTR
