@@ -792,8 +792,18 @@ class tParser(object):
 				print('(ELSE)')
 				self.elseBdy.print(indnt+1)
 	class tAssgn(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if self.lexeme.type != tTokeniser.tLex.eType.EQ: raise ValueError
+			self.lhs: tParser.tParserObj
+			self.rhs: tParser.tParserObj
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.lhs.print(indnt+1)
+			self.rhs.print(indnt+1)
+	class tCssgn(tParserObj):
 		class eType(enum.Enum):
-			EQ=enum.auto()
 			ADD=enum.auto()
 			SUB=enum.auto()
 			MUL=enum.auto()
@@ -805,32 +815,30 @@ class tParser(object):
 			NOT=enum.auto()
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type == tTokeniser.tLex.eType.EQ: self.type = tParser.tAssgn.eType.EQ
-			elif self.lexeme.type == tTokeniser.tLex.eType.PLUSEQ: self.type = tParser.tAssgn.eType.ADD
-			elif self.lexeme.type == tTokeniser.tLex.eType.DASHEQ: self.type = tParser.tAssgn.eType.SUB
-			elif self.lexeme.type == tTokeniser.tLex.eType.ASTREQ: self.type = tParser.tAssgn.eType.MUL
-			elif self.lexeme.type == tTokeniser.tLex.eType.FSLSHEQ: self.type = tParser.tAssgn.eType.DIV
-			elif self.lexeme.type == tTokeniser.tLex.eType.AMPEQ: self.type = tParser.tAssgn.eType.AND
-			elif self.lexeme.type == tTokeniser.tLex.eType.PIPEEQ: self.type = tParser.tAssgn.eType.OR
-			elif self.lexeme.type == tTokeniser.tLex.eType.CARETEQ: self.type = tParser.tAssgn.eType.EOR
-			elif self.lexeme.type == tTokeniser.tLex.eType.PRCNTEQ: self.type = tParser.tAssgn.eType.MOD
-			elif self.lexeme.type == tTokeniser.tLex.eType.TILEQ: self.type = tParser.tAssgn.eType.NOT
+			if self.lexeme.type == tTokeniser.tLex.eType.PLUSEQ: self.type = tParser.tCssgn.eType.ADD
+			elif self.lexeme.type == tTokeniser.tLex.eType.DASHEQ: self.type = tParser.tCssgn.eType.SUB
+			elif self.lexeme.type == tTokeniser.tLex.eType.ASTREQ: self.type = tParser.tCssgn.eType.MUL
+			elif self.lexeme.type == tTokeniser.tLex.eType.FSLSHEQ: self.type = tParser.tCssgn.eType.DIV
+			elif self.lexeme.type == tTokeniser.tLex.eType.AMPEQ: self.type = tParser.tCssgn.eType.AND
+			elif self.lexeme.type == tTokeniser.tLex.eType.PIPEEQ: self.type = tParser.tCssgn.eType.OR
+			elif self.lexeme.type == tTokeniser.tLex.eType.CARETEQ: self.type = tParser.tCssgn.eType.EOR
+			elif self.lexeme.type == tTokeniser.tLex.eType.PRCNTEQ: self.type = tParser.tCssgn.eType.MOD
+			elif self.lexeme.type == tTokeniser.tLex.eType.TILEQ: self.type = tParser.tCssgn.eType.NOT
 			else: raise ValueError
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2],end='')
-			if self.type == tParser.tAssgn.eType.EQ: print('(=)')
-			elif self.type == tParser.tAssgn.eType.ADD: print('(+=)')
-			elif self.type == tParser.tAssgn.eType.SUB: print('(-=)')
-			elif self.type == tParser.tAssgn.eType.MUL: print('(*=)')
-			elif self.type == tParser.tAssgn.eType.DIV: print('(/=)')
-			elif self.type == tParser.tAssgn.eType.AND: print('(&=)')
-			elif self.type == tParser.tAssgn.eType.OR: print('(|=)')
-			elif self.type == tParser.tAssgn.eType.EOR: print('(^=)')
-			elif self.type == tParser.tAssgn.eType.MOD: print('(%=)')
-			elif self.type == tParser.tAssgn.eType.NOT: print('(~=)')
+			if self.type == tParser.tCssgn.eType.ADD: print('(+=)')
+			elif self.type == tParser.tCssgn.eType.SUB: print('(-=)')
+			elif self.type == tParser.tCssgn.eType.MUL: print('(*=)')
+			elif self.type == tParser.tCssgn.eType.DIV: print('(/=)')
+			elif self.type == tParser.tCssgn.eType.AND: print('(&=)')
+			elif self.type == tParser.tCssgn.eType.OR: print('(|=)')
+			elif self.type == tParser.tCssgn.eType.EOR: print('(^=)')
+			elif self.type == tParser.tCssgn.eType.MOD: print('(%=)')
+			elif self.type == tParser.tCssgn.eType.NOT: print('(~=)')
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
 	class tTyp(tParserObj):
@@ -929,6 +937,17 @@ class tParser(object):
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
+	class tVar(tParserObj):
+		def __init__(self):
+			self.vars = []
+			self.type: tParser.tParserObj | None
+			self.val: tParser.tParserObj | None
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			for var in self.vars: var.print(indnt+1)
+			if self.type is not None: self.type.print(indnt+1)
+			if self.val is not None: self.val.print(indnt+1)
 	def __init__(self):
 		self.idx = 0
 		self.lexemes = []
@@ -1138,6 +1157,41 @@ class tParser(object):
 			return root
 	def expr(self):
 		return self.lgco()
+	def var(self):
+		strt = self.idx
+		try:
+			ret = tParser.tVar()
+			ret.vars.append(self.idnt())
+			while self.curr().type == tTokeniser.tLex.eType.COMMA:
+				self.idx+=1
+				self.trim()
+				try:
+					ret.vars.append(self.idnt())
+				except ValueError:
+					print(f'Expected identifier after comma in variable declaration list @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+					exit(1)
+			if self.curr().type == tTokeniser.tLex.eType.COLON:
+				self.idx+=1
+				try:
+					ret.type = self.mtyp()
+				except ValueError:
+					print(f'Expected colon in variable declaration @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+					exit(1)
+			else: raise ValueError
+			if self.curr().type == tTokeniser.tLex.eType.EQ:
+				self.idx+=1
+				try:
+					ret.val = self.expr()
+				except ValueError:
+					print(f'Expected expresion following assignment operator in variable definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+					exit(1)
+			return ret
+		except Exception as e:
+			self.idx = strt
+			raise e
 	def rtrn(self):
 		ret = tParser.tRtrn(self.curr())
 		self.idx+=1
@@ -1148,20 +1202,24 @@ class tParser(object):
 		self.idx += 1
 		return ret
 	def stmnt(self):
-		try: ret = self.assgn()
+		try: ret = self.var()
 		except ValueError:
-			try: ret = self.expr()
+			try: ret = self.cssgn()
 			except ValueError:
-				try: ret = self.rtrn()
+				try: ret = self.assgn()
 				except ValueError:
-					try: ret = self.brk()
+					try: ret = self.expr()
 					except ValueError:
-						try: ret = self.blck()
+						try: ret = self.rtrn()
 						except ValueError:
-							try: ret = self.cnd()
+							try: ret = self.brk()
 							except ValueError:
-								try: ret = self.loop()
-								except ValueError: return None
+								try: ret = self.blck()
+								except ValueError:
+									try: ret = self.cnd()
+									except ValueError:
+										try: ret = self.loop()
+										except ValueError: return None
 		return ret
 	def stlst(self):
 		ret = tParser.tStLst()
@@ -1266,6 +1324,25 @@ class tParser(object):
 			try: ret.rhs = self.expr()
 			except:
 				print(f'ERR: Unexpected lexeme encountered following assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+				exit(1)
+		return ret
+	def cssgn(self):
+		idx = self.idx
+		retLhs = self.unry()
+		try:
+			ret = tParser.tCssgn(self.curr())
+		except (ValueError, IndexError) as exp:
+			self.idx = idx
+			raise exp
+		self.idx+=1
+		ret.lhs = retLhs
+		try:
+			ret.rhs = self.assgn()
+		except ValueError:
+			try: ret.rhs = self.expr()
+			except:
+				print(f'ERR: Unexpected lexeme encountered following compound assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 		return ret

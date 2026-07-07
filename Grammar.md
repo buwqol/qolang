@@ -4,9 +4,9 @@ typ => TIU8 | TIS8 | TIU16 | TIS16 | TIU32 | TIS32 | TIU64 | TIS64 | TFP32 | TFP
 
 mtyp => CARET mtyp | LBRACK expr RBRACK mtyp | typ
 
-tcst => COLON typ
+cst => COLON mtyp
 
-prim => (lit | IDENT | LPAREN expr RPAREN) tcst?
+prim => (lit | IDENT | LPAREN expr RPAREN) cst?
 
 pstfx => prim (LPAREN (expr (COMMA expr)\*)? RPAREN | LBRACK expr RBRACK | PERIOD IDENT)\*
 
@@ -38,12 +38,20 @@ cnd => KWIF expr cndbdy (NEWLINE* KWELIF expr cndbdy)\* (NEWLINE* KWELSE cndbdy)
 
 loop => KWWHILE expr cndbdy (NEWLINE* KWELSE cndbdy)?
 
-assgn => IDENT EQ (assgn | expr)
+assgn => unry EQ (assgn | expr)
 
-stmnt => (assgn | expr | rtrn | blck | KWBRK | cnd | loop)
+cssgn => unry (PLUSEQ | DASHEQ | ASTREQ | FSLSHEQ | PRCNTEQ | AMPEQ | PIPEEQ | CARETEQ | TILEQ) (assgn | expr)
 
-stlst => (stmnt (NEWLINE+ stmnt)*)?
+var => IDENT (COMMA NEWLINE* IDENT)\* COLON mtyp (EQ expr)?
+
+stmnt => (var | cssgn | assgn | expr | rtrn | blck | KWBRK | cnd | loop)
+
+stlst => (stmnt (NEWLINE+ stmnt)\*)?
 
 blck => LBRACE NEWLINE\* stlst NEWLINE\* RBRACE
 
+<!-- fnc => IDENT LPAREN (IDENT COLON mtyp (COMMA IDENT COLON mtyp)\*)? RPAREN COLON mtyp blck? -->
+
 prog => NEWLINE\* stlst NEWLINE\*
+
+<!-- prog => NEWLINE\* (fnc | var)\* NEWLINE\* -->
