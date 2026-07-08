@@ -1415,8 +1415,7 @@ class tParser(object):
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
-		try:
-			ret.type = self.mtyp()
+		try: ret.type = self.mtyp()
 		except tParser.xNoMatch:
 			print(f'ERR: Expected type name for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
@@ -1500,15 +1499,12 @@ class tParser(object):
 			self.cntrl,
 			self.blck,
 			self.cnd,
-			self.loop,
+			self.loop
 		]
 		for mtch in mtchs:
-			try:
-				ret = mtch()
-			except tParser.xNoMatch:
-				continue
-			else:
-				return ret
+			try: ret = mtch()
+			except tParser.xNoMatch: continue
+			else: return ret
 		return None
 	def stlst(self):
 		ret = tParser.tStLst()
@@ -1533,10 +1529,8 @@ class tParser(object):
 		return ret #TODO: I might change this to just return `ret.child`, depending on the later steps.
 	def cndbdy(self):
 		self.trim()
-		try:
-			ret = self.blck()
-		except tParser.xNoMatch:
-			ret = self.stmnt()
+		try: ret = self.blck()
+		except tParser.xNoMatch: ret = self.stmnt()
 		return ret
 	def cnd(self):
 		ret = tParser.tCnd(self.curr())
@@ -1598,18 +1592,16 @@ class tParser(object):
 	def assgn(self):
 		idx = self.idx
 		retLhs = self.unry()
-		try:
-			ret = tParser.tAssgn(self.curr())
+		try: ret = tParser.tAssgn(self.curr())
 		except (tParser.xNoMatch, IndexError) as exp:
 			self.idx = idx
 			raise exp
 		self.idx+=1
 		ret.lhs = retLhs
-		try:
-			ret.rhs = self.assgn()
+		try: ret.rhs = self.assgn()
 		except tParser.xNoMatch:
 			try: ret.rhs = self.expr()
-			except:
+			except tParser.xNoMatch:
 				print(f'ERR: Unexpected lexeme encountered following assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
@@ -1617,18 +1609,16 @@ class tParser(object):
 	def cssgn(self):
 		idx = self.idx
 		retLhs = self.unry()
-		try:
-			ret = tParser.tCssgn(self.curr())
+		try: ret = tParser.tCssgn(self.curr())
 		except (tParser.xNoMatch, IndexError) as exp:
 			self.idx = idx
 			raise exp
 		self.idx+=1
 		ret.lhs = retLhs
-		try:
-			ret.rhs = self.assgn()
+		try: ret.rhs = self.assgn()
 		except tParser.xNoMatch:
 			try: ret.rhs = self.expr()
-			except:
+			except tParser.xNoMatch:
 				print(f'ERR: Unexpected lexeme encountered following compound assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
@@ -1654,8 +1644,7 @@ class tParser(object):
 			self.trim()
 		return ret
 	def run(self):
-		try:
-			self.brnchs = self.prog()
+		try: self.brnchs = self.prog()
 		except tParser.xNoMatch:
 			print(f'ERR: Unexpected lexeme encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
