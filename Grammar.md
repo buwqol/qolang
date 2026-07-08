@@ -62,9 +62,9 @@ dobja => IDENT (COMMA NEWLINE\* IDENT)\* COLON mtyp
 
 dobj => KWOBJ IDENT NEWLINE\* (LBRACE NEWLINE\* dobja (NEWLINE+ dobja)\* NEWLINE\* RBRACE)?
 
-<!-- dunia => IDENT COLON mtyp -->
+dunia => IDENT COLON mtyp
 
-<!-- duni => KWUNI IDENT NEWLINE\* (LBRACE NEWLINE\* dunia (NEWLINE+ dunia)\* NEWLINE\* RBRACE)? -->
+duni => KWUNI IDENT NEWLINE\* (LBRACE NEWLINE\* dunia (NEWLINE+ dunia)\* NEWLINE\* RBRACE)?
 
 <!-- enum => KWENUM (NEWLINE\* IDENT (NEWLINE\* LBRACE (NEWLINE\* IDENT)\*)? RBRACE)? -->
 

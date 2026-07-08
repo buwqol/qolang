@@ -1028,6 +1028,28 @@ class tParser(object):
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			for fld in self.flds: fld.print(indnt+1)
+	class tDUniA(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.type: tParser.tParserObj
+			self.idnt: tParser.tParserObj
+			self.type: tParser.tParserObj
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.idnt.print(indnt+1)
+			self.type.print(indnt+1)
+	class tDUni(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if self.lexeme.type != tTokeniser.tLex.eType.KWUNI: raise ValueError
+			self.idnt: tParser.tParserObj
+			self.flds = []
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.idnt.print(indnt+1)
+			for fld in self.flds: fld.print(indnt+1)
 	def __init__(self):
 		self.idx = 0
 		self.lexemes = []
@@ -1398,6 +1420,50 @@ class tParser(object):
 			exit(1)
 		self.idx+=1
 		return ret
+	def dunia(self):
+		ret = tParser.tDUniA(self.curr())
+		ret.idnt = self.idnt()
+		if self.curr().type != tTokeniser.tLex.eType.COLON:
+			print(f'ERR: Expected colon before type for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.idx+=1
+		try:
+			ret.type = self.mtyp()
+		except ValueError:
+			print(f'ERR: Expected type name for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		return ret
+	def duni(self):
+		ret = tParser.tDUni(self.curr())
+		self.idx+=1
+		try:
+			ret.idnt = self.idnt()
+		except ValueError:
+			print(f'ERR: Expected identifier name for union definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.trim()
+		if self.curr().type != tTokeniser.tLex.eType.LBRACE: return ret
+		self.idx+=1
+		self.trim()
+		try: ret.flds.append(self.dobja())
+		except ValueError:
+			print(f'ERR: Expected identifier name for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
+			self.trim()
+			try: ret.flds.append(self.dobja())
+			except ValueError: break
+		self.trim()
+		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
+			print(f'ERR: Expected closing brace for union definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.idx+=1
+		return ret
 	def stmnt(self):
 		mtchs = [
 			self.var,
@@ -1554,7 +1620,9 @@ class tParser(object):
 			except ValueError:
 				try: ret.append(self.var())
 				except ValueError:
-					ret.append(self.dobj())
+					try: ret.append(self.dobj())
+					except ValueError:
+						ret.append(self.duni())
 		self.trim()
 		return ret
 	def run(self):
