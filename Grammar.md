@@ -68,6 +68,6 @@ duni => KWUNI IDENT NEWLINE\* (LBRACE NEWLINE\* dunia (NEWLINE+ dunia)\* NEWLINE
 
 dorda => IDENT (EQ expr)?
 
-dord => KWORD IDENT NEWLINE\* (LBRACE NEWLINE\* ordra (NEWLINE+ ordra)\* NEWLINE\* RBRACE)?
+dord => KWORD IDENT NEWLINE\* (LBRACE NEWLINE\* dorda (NEWLINE+ dorda)\* NEWLINE\* RBRACE)?
 
-prog => NEWLINE\* ((fnc | var | dobj | duni) NEWLINE+)\* EOF
+prog => NEWLINE\* ((fnc | var | dobj | duni | dord) NEWLINE+)\* EOF
