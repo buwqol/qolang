@@ -20,9 +20,9 @@ btws => term ((AMP | PIPE | CARET) term)\*
 
 shft => btws ((LTLT | GTGT) btws)\*
 
-comp => shft ((LT | LTEQ | GT | GTEQ) shft)\*
+cmp => shft ((LT | LTEQ | GT | GTEQ) shft)\*
 
-eqlt => comp ((EQEQ | EXCLAMEQ) comp)\*
+eqlt => cmp ((EQEQ | EXCLAMEQ) cmp)\*
 
 lgca => eqlt (KWAND eqlt)\*
 
@@ -31,6 +31,8 @@ lgco => lgca (KWOR lgca)\*
 expr => lgco
 
 rtrn => KWRET expr
+
+dfer => KWLTR (expr | assgn | cssgn)
 
 cndbdy => NEWLINE\* (stmnt | blck)
 
@@ -44,7 +46,9 @@ cssgn => unry (PLUSEQ | DASHEQ | ASTREQ | FSLSHEQ | PRCNTEQ | AMPEQ | PIPEEQ | C
 
 var => IDENT (COMMA NEWLINE* IDENT)\* COLON ((mtyp (EQ expr)?) | (EQ expr))
 
-stmnt => (var | cssgn | assgn | expr | rtrn | blck | KWBRK | cnd | loop)
+cntrl => KWBRK | KWCONT
+
+stmnt => (var | cssgn | assgn | expr | rtrn | dfer | blck | cntrl | cnd | loop)
 
 stlst => (stmnt (NEWLINE+ stmnt)\*)?
 
@@ -54,4 +58,14 @@ arg => IDENT COLON mtyp
 
 fnc => IDENT LPAREN (NEWLINE\* arg (COMMA NEWLINE\* arg)\*)? RPAREN COLON mtyp NEWLINE\* blck?
 
-prog => NEWLINE\* (fnc | var)\* NEWLINE\*
+dobja => IDENT (COMMA NEWLINE\* IDENT)\* COLON mtyp
+
+dobj => KWOBJ IDENT NEWLINE\* (LBRACE NEWLINE\* dobja (NEWLINE+ dobja)\* NEWLINE\* RBRACE)?
+
+<!-- dunia => IDENT COLON mtyp -->
+
+<!-- duni => KWUNI IDENT NEWLINE\* (LBRACE NEWLINE\* dunia (NEWLINE+ dunia)\* NEWLINE\* RBRACE)? -->
+
+<!-- enum => KWENUM (NEWLINE\* IDENT (NEWLINE\* LBRACE (NEWLINE\* IDENT)\*)? RBRACE)? -->
+
+prog => NEWLINE\* (NEWLINE\* | fnc | var | dobj | duni)\* NEWLINE\*

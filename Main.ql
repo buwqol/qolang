@@ -1,15 +1,14 @@
-a, b : tIU32 = 0
-; Our program's entry point.
-Entry(num: tIS32, val: ^^tChr): tIS32
+TestFunc(tf: bln): bln
 {
-	var: tBln = True
-	if var == True
-	{
-		ret 0
-	}
-	else
-	{
-		ret 1
-	}
+	ltr tf = False
+	ret tf
 }
-c := 0.0
+
+; Our program's entry point.
+Entry(num: is32, val: ^^chr): is32
+{
+	ret (TestFunc(True)): is32
+}
+
+obj fp32vec2 { x: fp32
+y: fp32 }

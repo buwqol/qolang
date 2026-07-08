@@ -58,9 +58,12 @@ class tTokeniser(object):
 			KWAND=enum.auto()
 			KWOR=enum.auto()
 			KWRET=enum.auto()
-			KWWHILE=enum.auto()
+			KWLTR=enum.auto()
+			KWWHL=enum.auto()
 			KWBRK=enum.auto()
 			KWCONT=enum.auto()
+			KWOBJ=enum.auto()
+			KWUNI=enum.auto()
 
 			TIU8=enum.auto()
 			TIS8=enum.auto()
@@ -75,8 +78,9 @@ class tTokeniser(object):
 			TUSZ=enum.auto()
 			TSSZ=enum.auto()
 			TBLN=enum.auto()
-			TNONE=enum.auto()
+			TNON=enum.auto()
 			TPTR=enum.auto()
+			TCHR=enum.auto()
 
 			LITIU=enum.auto()
 			LITFP=enum.auto()
@@ -249,29 +253,33 @@ class tTokeniser(object):
 		elif self.stack == 'elif': self.add(tTokeniser.tLex.eType.KWELIF, self.stack, lineNum, colNum)
 		elif self.stack == 'else': self.add(tTokeniser.tLex.eType.KWELSE, self.stack, lineNum, colNum)
 		elif self.stack == 'ret': self.add(tTokeniser.tLex.eType.KWRET, self.stack, lineNum, colNum)
-		elif self.stack == 'while': self.add(tTokeniser.tLex.eType.KWWHILE, self.stack, lineNum, colNum)
+		elif self.stack == 'ltr': self.add(tTokeniser.tLex.eType.KWLTR, self.stack, lineNum, colNum)
+		elif self.stack == 'whl': self.add(tTokeniser.tLex.eType.KWWHL, self.stack, lineNum, colNum)
 		elif self.stack == 'brk': self.add(tTokeniser.tLex.eType.KWBRK, self.stack, lineNum, colNum)
 		elif self.stack == 'cont': self.add(tTokeniser.tLex.eType.KWCONT, self.stack, lineNum, colNum)
+		elif self.stack == 'obj': self.add(tTokeniser.tLex.eType.KWOBJ, self.stack, lineNum, colNum)
+		elif self.stack == 'uni': self.add(tTokeniser.tLex.eType.KWUNI, self.stack, lineNum, colNum)
 		elif self.stack == 'True': self.add(tTokeniser.tLex.eType.LITTRUE, self.stack, lineNum, colNum)
 		elif self.stack == 'False': self.add(tTokeniser.tLex.eType.LITFALSE, self.stack, lineNum, colNum)
 		elif self.stack == 'Null': self.add(tTokeniser.tLex.eType.LITNULL, self.stack, lineNum, colNum)
 		elif self.stack == 'and': self.add(tTokeniser.tLex.eType.KWAND, self.stack, lineNum, colNum)
 		elif self.stack == 'or': self.add(tTokeniser.tLex.eType.KWOR, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU8': self.add(tTokeniser.tLex.eType.TIU8, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS8': self.add(tTokeniser.tLex.eType.TIS8, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU16': self.add(tTokeniser.tLex.eType.TIU16, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS16': self.add(tTokeniser.tLex.eType.TIS16, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU32': self.add(tTokeniser.tLex.eType.TIU32, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS32': self.add(tTokeniser.tLex.eType.TIS32, self.stack, lineNum, colNum)
-		elif self.stack == 'tIU64': self.add(tTokeniser.tLex.eType.TIU64, self.stack, lineNum, colNum)
-		elif self.stack == 'tIS64': self.add(tTokeniser.tLex.eType.TIS64, self.stack, lineNum, colNum)
-		elif self.stack == 'tFP32': self.add(tTokeniser.tLex.eType.TFP32, self.stack, lineNum, colNum)
-		elif self.stack == 'tFP64': self.add(tTokeniser.tLex.eType.TFP64, self.stack, lineNum, colNum)
-		elif self.stack == 'tUSz': self.add(tTokeniser.tLex.eType.TUSZ, self.stack, lineNum, colNum)
-		elif self.stack == 'tSSz': self.add(tTokeniser.tLex.eType.TSSZ, self.stack, lineNum, colNum)
-		elif self.stack == 'tBln': self.add(tTokeniser.tLex.eType.TBLN, self.stack, lineNum, colNum)
-		elif self.stack == 'tNone': self.add(tTokeniser.tLex.eType.TNONE, self.stack, lineNum, colNum)
-		elif self.stack == 'tPtr': self.add(tTokeniser.tLex.eType.TPTR, self.stack, lineNum, colNum)
+		elif self.stack == 'iu8': self.add(tTokeniser.tLex.eType.TIU8, self.stack, lineNum, colNum)
+		elif self.stack == 'is8': self.add(tTokeniser.tLex.eType.TIS8, self.stack, lineNum, colNum)
+		elif self.stack == 'iu16': self.add(tTokeniser.tLex.eType.TIU16, self.stack, lineNum, colNum)
+		elif self.stack == 'is16': self.add(tTokeniser.tLex.eType.TIS16, self.stack, lineNum, colNum)
+		elif self.stack == 'iu32': self.add(tTokeniser.tLex.eType.TIU32, self.stack, lineNum, colNum)
+		elif self.stack == 'is32': self.add(tTokeniser.tLex.eType.TIS32, self.stack, lineNum, colNum)
+		elif self.stack == 'iu64': self.add(tTokeniser.tLex.eType.TIU64, self.stack, lineNum, colNum)
+		elif self.stack == 'is64': self.add(tTokeniser.tLex.eType.TIS64, self.stack, lineNum, colNum)
+		elif self.stack == 'fp32': self.add(tTokeniser.tLex.eType.TFP32, self.stack, lineNum, colNum)
+		elif self.stack == 'fp64': self.add(tTokeniser.tLex.eType.TFP64, self.stack, lineNum, colNum)
+		elif self.stack == 'usz': self.add(tTokeniser.tLex.eType.TUSZ, self.stack, lineNum, colNum)
+		elif self.stack == 'ssz': self.add(tTokeniser.tLex.eType.TSSZ, self.stack, lineNum, colNum)
+		elif self.stack == 'bln': self.add(tTokeniser.tLex.eType.TBLN, self.stack, lineNum, colNum)
+		elif self.stack == 'non': self.add(tTokeniser.tLex.eType.TNON, self.stack, lineNum, colNum)
+		elif self.stack == 'chr': self.add(tTokeniser.tLex.eType.TCHR, self.stack, lineNum, colNum)
+		# elif self.stack == 'ptr': self.add(tTokeniser.tLex.eType.TPTR, self.stack, lineNum, colNum) # Maybe I'll add this back, I'll see.
 		else: self.add(tTokeniser.tLex.eType.IDENT, self.stack, lineNum, colNum)
 		self.stack = ''
 	def cstr(self):
@@ -669,7 +677,7 @@ class tParser(object):
 			elif self.type == tParser.tShft.eType.RSHF: print('(>>)')
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
-	class tComp(tParserObj):
+	class tCmp(tParserObj):
 		class eType(enum.Enum):
 			LS=enum.auto()
 			LSEQ=enum.auto()
@@ -679,18 +687,18 @@ class tParser(object):
 			self.lexeme = lexeme
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
-			if lexeme.type == tTokeniser.tLex.eType.LT: self.type = tParser.tComp.eType.LS
-			elif lexeme.type == tTokeniser.tLex.eType.LTEQ: self.type = tParser.tComp.eType.LSEQ
-			elif lexeme.type == tTokeniser.tLex.eType.GT: self.type = tParser.tComp.eType.GR
-			elif lexeme.type == tTokeniser.tLex.eType.GTEQ: self.type = tParser.tComp.eType.GREQ
+			if lexeme.type == tTokeniser.tLex.eType.LT: self.type = tParser.tCmp.eType.LS
+			elif lexeme.type == tTokeniser.tLex.eType.LTEQ: self.type = tParser.tCmp.eType.LSEQ
+			elif lexeme.type == tTokeniser.tLex.eType.GT: self.type = tParser.tCmp.eType.GR
+			elif lexeme.type == tTokeniser.tLex.eType.GTEQ: self.type = tParser.tCmp.eType.GREQ
 			else: raise ValueError
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
-			if self.type == tParser.tComp.eType.LS: print('(<)')
-			elif self.type == tParser.tComp.eType.LSEQ: print('(<=)')
-			elif self.type == tParser.tComp.eType.GR: print('(>)')
-			elif self.type == tParser.tComp.eType.GREQ: print('(>=)')
+			if self.type == tParser.tCmp.eType.LS: print('(<)')
+			elif self.type == tParser.tCmp.eType.LSEQ: print('(<=)')
+			elif self.type == tParser.tCmp.eType.GR: print('(>)')
+			elif self.type == tParser.tCmp.eType.GREQ: print('(>=)')
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
 	class tEqlt(tParserObj):
@@ -721,13 +729,29 @@ class tParser(object):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.child.print(indnt+1)
-	class tBrk(tParserObj):
+	class tDfer(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if lexeme.type != tTokeniser.tLex.eType.KWBRK: raise ValueError
+			self.child: tParser.tParserObj
+			if lexeme.type != tTokeniser.tLex.eType.KWLTR: raise ValueError
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2])
+			self.child.print(indnt+1)
+	class tCntrl(tParserObj):
+		class eType(enum.Enum):
+			BRK=enum.auto()
+			CONT=enum.auto()
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if lexeme.type == tTokeniser.tLex.eType.KWBRK: self.type = tParser.tCntrl.eType.BRK
+			elif lexeme.type == tTokeniser.tLex.eType.KWCONT: self.type = tParser.tCntrl.eType.CONT
+			else: raise ValueError
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2],end='')
+			if self.type == tParser.tCntrl.eType.CONT: print('(CONT)')
+			elif self.type == tParser.tCntrl.eType.BRK: print('(BRK)')
 	class tStLst(tParserObj):
 		def __init__(self):
 			self.kids = []
@@ -783,7 +807,7 @@ class tParser(object):
 	class tLoop(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type != tTokeniser.tLex.eType.KWWHILE: raise ValueError
+			if self.lexeme.type != tTokeniser.tLex.eType.KWWHL: raise ValueError
 			self.cnd: tParser.tParserObj
 			self.bdy: tParser.tParserObj
 			self.elseBdy: tParser.tParserObj | None = None
@@ -850,7 +874,7 @@ class tParser(object):
 			self.rhs.print(indnt+1)
 	class tTyp(tParserObj):
 		class eType(enum.Enum):
-			DEF=enum.auto()
+			USR=enum.auto()
 			IU8=enum.auto()
 			IS8=enum.auto()
 			IU16=enum.auto()
@@ -864,11 +888,12 @@ class tParser(object):
 			USZ=enum.auto()
 			SSZ=enum.auto()
 			BLN=enum.auto()
-			NONE=enum.auto()
-			PTR=enum.auto()
+			NON=enum.auto()
+			# PTR=enum.auto()
+			CHR=enum.auto()
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type == tTokeniser.tLex.eType.IDENT: self.type = tParser.tTyp.eType.DEF
+			if self.lexeme.type == tTokeniser.tLex.eType.IDENT: self.type = tParser.tTyp.eType.USR
 			elif self.lexeme.type == tTokeniser.tLex.eType.TIU8: self.type = tParser.tTyp.eType.IU8
 			elif self.lexeme.type == tTokeniser.tLex.eType.TIS8: self.type = tParser.tTyp.eType.IS8
 			elif self.lexeme.type == tTokeniser.tLex.eType.TIU16: self.type = tParser.tTyp.eType.IU16
@@ -882,8 +907,9 @@ class tParser(object):
 			elif self.lexeme.type == tTokeniser.tLex.eType.TUSZ: self.type = tParser.tTyp.eType.USZ
 			elif self.lexeme.type == tTokeniser.tLex.eType.TSSZ: self.type = tParser.tTyp.eType.SSZ
 			elif self.lexeme.type == tTokeniser.tLex.eType.TBLN: self.type = tParser.tTyp.eType.BLN
-			elif self.lexeme.type == tTokeniser.tLex.eType.TNONE: self.type = tParser.tTyp.eType.NONE
-			elif self.lexeme.type == tTokeniser.tLex.eType.TPTR: self.type = tParser.tTyp.eType.PTR
+			elif self.lexeme.type == tTokeniser.tLex.eType.TNON: self.type = tParser.tTyp.eType.NON
+			# elif self.lexeme.type == tTokeniser.tLex.eType.TPTR: self.type = tParser.tTyp.eType.PTR
+			elif self.lexeme.type == tTokeniser.tLex.eType.TCHR: self.type = tParser.tTyp.eType.CHR
 			else: raise ValueError
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
@@ -981,6 +1007,27 @@ class tParser(object):
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			self.type.print(indnt+1)
+	class tDObjA(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.type: tParser.tParserObj
+			self.idnts = []
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			for idnt in self.idnts: idnt.print(indnt+1)
+			self.type.print(indnt+1)
+	class tDObj(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if self.lexeme.type != tTokeniser.tLex.eType.KWOBJ: raise ValueError
+			self.idnt: tParser.tParserObj
+			self.flds = []
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.idnt.print(indnt+1)
+			for fld in self.flds: fld.print(indnt+1)
 	def __init__(self):
 		self.idx = 0
 		self.lexemes = []
@@ -1144,11 +1191,11 @@ class tParser(object):
 				root.rhs = self.btws()
 		except ValueError, IndexError:
 			return root
-	def comp(self):
+	def cmp(self):
 		root = self.shft()
 		try:
 			while True:
-				tmp = tParser.tComp(self.curr())
+				tmp = tParser.tCmp(self.curr())
 				self.idx+=1
 				tmp.lhs = root
 				root = tmp
@@ -1156,14 +1203,14 @@ class tParser(object):
 		except ValueError, IndexError:
 			return root
 	def eqlt(self):
-		root = self.comp()
+		root = self.cmp()
 		try:
 			while True:
 				tmp = tParser.tEqlt(self.curr())
 				self.idx+=1
 				tmp.lhs = root
 				root = tmp
-				root.rhs = self.comp()
+				root.rhs = self.cmp()
 		except ValueError, IndexError:
 			return root
 	def lgca(self):
@@ -1288,30 +1335,90 @@ class tParser(object):
 		self.idx+=1
 		ret.child = self.expr()
 		return ret
-	def brk(self):
-		ret = tParser.tBrk(self.curr())
+	def dfer(self):
+		ret = tParser.tDfer(self.curr())
+		self.idx+=1
+		try:
+			ret.child = self.cssgn()
+		except ValueError:
+			try:
+				ret.child = self.assgn()
+			except ValueError:
+				ret.child = self.expr()
+		return ret
+	def cntrl(self):
+		ret = tParser.tCntrl(self.curr())
 		self.idx += 1
 		return ret
-	def stmnt(self):
-		try: ret = self.var()
+	def dobja(self):
+		ret = tParser.tDObjA(self.curr())
+		ret.idnts.append(self.idnt())
+		while self.curr().type == tTokeniser.tLex.eType.COMMA:
+			self.idx+=1
+			self.trim()
+			ret.idnts.append(self.idnt())
+		if self.curr().type != tTokeniser.tLex.eType.COLON:
+			print(f'ERR: Expected colon before type for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.idx+=1
+		try:
+			ret.type = self.mtyp()
 		except ValueError:
-			try: ret = self.cssgn()
-			except ValueError:
-				try: ret = self.assgn()
-				except ValueError:
-					try: ret = self.expr()
-					except ValueError:
-						try: ret = self.rtrn()
-						except ValueError:
-							try: ret = self.brk()
-							except ValueError:
-								try: ret = self.blck()
-								except ValueError:
-									try: ret = self.cnd()
-									except ValueError:
-										try: ret = self.loop()
-										except ValueError: return None
+			print(f'ERR: Expected type name for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
 		return ret
+	def dobj(self):
+		ret = tParser.tDObj(self.curr())
+		self.idx+=1
+		try:
+			ret.idnt = self.idnt()
+		except ValueError:
+			print(f'ERR: Expected identifier name for object definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.trim()
+		if self.curr().type != tTokeniser.tLex.eType.LBRACE: return ret
+		self.idx+=1
+		self.trim()
+		try: ret.flds.append(self.dobja())
+		except ValueError:
+			print(f'ERR: Expected identifier name for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
+			self.trim()
+			try: ret.flds.append(self.dobja())
+			except ValueError: break
+		self.trim()
+		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
+			print(f'ERR: Expected closing brace for object definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.idx+=1
+		return ret
+	def stmnt(self):
+		mtchs = [
+			self.var,
+			self.cssgn,
+			self.assgn,
+			self.expr,
+			self.dfer,
+			self.rtrn,
+			self.cntrl,
+			self.blck,
+			self.cnd,
+			self.loop,
+		]
+		for mtch in mtchs:
+			try:
+				ret = mtch()
+			except ValueError:
+				continue
+			else:
+				return ret
+		return None
 	def stlst(self):
 		ret = tParser.tStLst()
 		try:
@@ -1444,7 +1551,10 @@ class tParser(object):
 			self.trim()
 			if self.curr().type == tTokeniser.tLex.eType.EOF: break
 			try: ret.append(self.fnc())
-			except ValueError: ret.append(self.var())
+			except ValueError:
+				try: ret.append(self.var())
+				except ValueError:
+					ret.append(self.dobj())
 		self.trim()
 		return ret
 	def run(self):
