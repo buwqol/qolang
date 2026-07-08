@@ -66,6 +66,8 @@ dunia => IDENT COLON mtyp
 
 duni => KWUNI IDENT NEWLINE\* (LBRACE NEWLINE\* dunia (NEWLINE+ dunia)\* NEWLINE\* RBRACE)?
 
-<!-- enum => KWENUM (NEWLINE\* IDENT (NEWLINE\* LBRACE (NEWLINE\* IDENT)\*)? RBRACE)? -->
+dorda => IDENT (EQ expr)?
 
-prog => NEWLINE\* (NEWLINE\* | fnc | var | dobj | duni)\* NEWLINE\*
+dord => KWORD IDENT NEWLINE\* (LBRACE NEWLINE\* ordra (NEWLINE+ ordra)\* NEWLINE\* RBRACE)?
+
+prog => NEWLINE\* ((fnc | var | dobj | duni) NEWLINE+)\* EOF

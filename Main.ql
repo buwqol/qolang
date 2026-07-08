@@ -12,6 +12,13 @@ Entry(num: is32, val: ^^chr): is32
 
 obj fp32vec2 { x,y: fp32 }
 
+ord ut
+{
+	UT_IU32 = 0
+	UT_IS32
+	UT_FP32
+}
+
 uni uni32
 {
 	f_iu32: iu32

@@ -5,7 +5,6 @@ import os
 import io
 import enum
 import abc
-
 class tTokeniser(object):
 	class tLex(object):
 		class eType(enum.Enum):
@@ -51,7 +50,6 @@ class tTokeniser(object):
 			EXCLAM=enum.auto()
 			EXCLAMEQ=enum.auto()
 			NEWLINE=enum.auto()
-
 			KWIF=enum.auto()
 			KWELIF=enum.auto()
 			KWELSE=enum.auto()
@@ -64,7 +62,7 @@ class tTokeniser(object):
 			KWCONT=enum.auto()
 			KWOBJ=enum.auto()
 			KWUNI=enum.auto()
-
+			KWORD=enum.auto()
 			TIU8=enum.auto()
 			TIS8=enum.auto()
 			TIU16=enum.auto()
@@ -81,7 +79,6 @@ class tTokeniser(object):
 			TNON=enum.auto()
 			TPTR=enum.auto()
 			TCHR=enum.auto()
-
 			LITIU=enum.auto()
 			LITFP=enum.auto()
 			LITSTR=enum.auto()
@@ -89,9 +86,7 @@ class tTokeniser(object):
 			LITTRUE=enum.auto()
 			LITFALSE=enum.auto()
 			LITNULL=enum.auto()
-
 			EOF=enum.auto()
-
 		def __init__(self, type, rawValue, fileName, lineNum, colNum, calcInt=0, calcFlt=0.0, calcStr=[]):
 			self.type = type
 			self.rawValue = rawValue
@@ -103,7 +98,6 @@ class tTokeniser(object):
 			self.calcStr = calcStr
 		def __repr__(self):
 			return f'(@ {self.lineNum},{self.colNum}) {str(self.type)[6:]}: \'{self.rawValue}\' {self.calcInt}/{self.calcFlt}/{self.calcStr}'
-
 	def __init__(self, fileName):
 		self.colNum = 0
 		self.lineNum = 1
@@ -259,6 +253,7 @@ class tTokeniser(object):
 		elif self.stack == 'cont': self.add(tTokeniser.tLex.eType.KWCONT, self.stack, lineNum, colNum)
 		elif self.stack == 'obj': self.add(tTokeniser.tLex.eType.KWOBJ, self.stack, lineNum, colNum)
 		elif self.stack == 'uni': self.add(tTokeniser.tLex.eType.KWUNI, self.stack, lineNum, colNum)
+		elif self.stack == 'ord': self.add(tTokeniser.tLex.eType.KWORD, self.stack, lineNum, colNum)
 		elif self.stack == 'True': self.add(tTokeniser.tLex.eType.LITTRUE, self.stack, lineNum, colNum)
 		elif self.stack == 'False': self.add(tTokeniser.tLex.eType.LITFALSE, self.stack, lineNum, colNum)
 		elif self.stack == 'Null': self.add(tTokeniser.tLex.eType.LITNULL, self.stack, lineNum, colNum)
@@ -496,12 +491,13 @@ class tTokeniser(object):
 				exit(1)
 		self.add(tTokeniser.tLex.eType.EOF)
 class tParser(object):
+	class xNoMatch(Exception):pass
 	class tParserObj(abc.ABC):
 		@abc.abstractmethod
-		def __init__(self, lexeme: tTokeniser.tLex): pass
+		def __init__(self, lexeme: tTokeniser.tLex):pass
 		@abc.abstractmethod
-		def print(self, indnt: int=0): pass
-	class tPrim(tParserObj): pass
+		def print(self, indnt: int=0):pass
+	class tPrim(tParserObj):pass
 	class tLit(tPrim):
 		class eType(enum.Enum):
 			IU=enum.auto()
@@ -520,7 +516,7 @@ class tParser(object):
 			elif lexeme.type == tTokeniser.tLex.eType.LITTRUE: self.type = tParser.tLit.eType.TRUE
 			elif lexeme.type == tTokeniser.tLex.eType.LITFALSE: self.type = tParser.tLit.eType.FALSE
 			elif lexeme.type == tTokeniser.tLex.eType.LITNULL: self.type = tParser.tLit.eType.NULL
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -534,7 +530,7 @@ class tParser(object):
 	class tIdnt(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if lexeme.type != tTokeniser.tLex.eType.IDENT: raise ValueError
+			if lexeme.type != tTokeniser.tLex.eType.IDENT: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -551,7 +547,7 @@ class tParser(object):
 			if lexeme.type == tTokeniser.tLex.eType.LPAREN: self.type = tParser.tPstFx.eType.CALL
 			elif lexeme.type == tTokeniser.tLex.eType.LBRACK: self.type = tParser.tPstFx.eType.ARR
 			elif lexeme.type == tTokeniser.tLex.eType.PERIOD: self.type = tParser.tPstFx.eType.ACS
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def fnsh(self, lexeme: tTokeniser.tLex):
 			if self.type == tParser.tPstFx.eType.CALL and lexeme.type != tTokeniser.tLex.eType.RPAREN:
 				print(f'ERR: Unclosed parentheses during function call, first opened @ {self.lexeme.fileName}:{self.lexeme.lineNum}:{self.lexeme.colNum}.')
@@ -588,7 +584,7 @@ class tParser(object):
 			elif lexeme.type == tTokeniser.tLex.eType.TIL: self.type = tParser.tUnry.eType.INV
 			elif lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tUnry.eType.PTR
 			elif lexeme.type == tTokeniser.tLex.eType.ATSGN: self.type = tParser.tUnry.eType.AT
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -611,7 +607,7 @@ class tParser(object):
 			if lexeme.type == tTokeniser.tLex.eType.ASTR: self.type = tParser.tFact.eType.MUL
 			elif lexeme.type == tTokeniser.tLex.eType.FSLSH: self.type = tParser.tFact.eType.DIV
 			elif lexeme.type == tTokeniser.tLex.eType.PRCNT: self.type = tParser.tFact.eType.MOD
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -630,7 +626,7 @@ class tParser(object):
 			self.rhs: tParser.tParserObj
 			if lexeme.type == tTokeniser.tLex.eType.PLUS: self.type = tParser.tTerm.eType.ADD
 			elif lexeme.type == tTokeniser.tLex.eType.DASH: self.type = tParser.tTerm.eType.SUB
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -650,7 +646,7 @@ class tParser(object):
 			if lexeme.type == tTokeniser.tLex.eType.AMP: self.type = tParser.tBtws.eType.AND
 			elif lexeme.type == tTokeniser.tLex.eType.PIPE: self.type = tParser.tBtws.eType.OR
 			elif lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tBtws.eType.EOR
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -669,7 +665,7 @@ class tParser(object):
 			self.rhs: tParser.tParserObj
 			if lexeme.type == tTokeniser.tLex.eType.LTLT: self.type = tParser.tShft.eType.LSHF
 			elif lexeme.type == tTokeniser.tLex.eType.GTGT: self.type = tParser.tShft.eType.RSHF
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -691,7 +687,7 @@ class tParser(object):
 			elif lexeme.type == tTokeniser.tLex.eType.LTEQ: self.type = tParser.tCmp.eType.LSEQ
 			elif lexeme.type == tTokeniser.tLex.eType.GT: self.type = tParser.tCmp.eType.GR
 			elif lexeme.type == tTokeniser.tLex.eType.GTEQ: self.type = tParser.tCmp.eType.GREQ
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -711,7 +707,7 @@ class tParser(object):
 			self.rhs: tParser.tParserObj
 			if lexeme.type == tTokeniser.tLex.eType.EQEQ: self.type = tParser.tEqlt.eType.EQUL
 			elif lexeme.type == tTokeniser.tLex.eType.EXCLAMEQ: self.type = tParser.tEqlt.eType.NEQUL
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2], end='')
@@ -719,12 +715,12 @@ class tParser(object):
 			elif self.type == tParser.tEqlt.eType.NEQUL: print('(!=)')
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
-	class tExpr(tEqlt): pass
+	class tExpr(tEqlt):pass
 	class tRtrn(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
 			self.child: tParser.tParserObj
-			if lexeme.type != tTokeniser.tLex.eType.KWRET: raise ValueError
+			if lexeme.type != tTokeniser.tLex.eType.KWRET: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2])
@@ -733,7 +729,7 @@ class tParser(object):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
 			self.child: tParser.tParserObj
-			if lexeme.type != tTokeniser.tLex.eType.KWLTR: raise ValueError
+			if lexeme.type != tTokeniser.tLex.eType.KWLTR: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2])
@@ -746,7 +742,7 @@ class tParser(object):
 			self.lexeme = lexeme
 			if lexeme.type == tTokeniser.tLex.eType.KWBRK: self.type = tParser.tCntrl.eType.BRK
 			elif lexeme.type == tTokeniser.tLex.eType.KWCONT: self.type = tParser.tCntrl.eType.CONT
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2],end='')
@@ -760,7 +756,7 @@ class tParser(object):
 	class tBlck(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if lexeme.type != tTokeniser.tLex.eType.LBRACE: raise ValueError
+			if lexeme.type != tTokeniser.tLex.eType.LBRACE: raise tParser.xNoMatch
 			self.child: tParser.tStLst
 		def fnsh(self, lexeme: tTokeniser.tLex):
 			if lexeme.type != tTokeniser.tLex.eType.RBRACE:
@@ -781,7 +777,7 @@ class tParser(object):
 			if self.lexeme.type == tTokeniser.tLex.eType.KWIF: self.type = tParser.tCnd.eType.IF
 			elif self.lexeme.type == tTokeniser.tLex.eType.KWELIF: self.type = tParser.tCnd.eType.ELIF
 			elif self.lexeme.type == tTokeniser.tLex.eType.KWELSE: self.type = tParser.tCnd.eType.ELSE
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 			self.cnd: tParser.tParserObj
 			self.bdy: tParser.tParserObj
 			self.elifs = []
@@ -807,7 +803,7 @@ class tParser(object):
 	class tLoop(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type != tTokeniser.tLex.eType.KWWHL: raise ValueError
+			if self.lexeme.type != tTokeniser.tLex.eType.KWWHL: raise tParser.xNoMatch
 			self.cnd: tParser.tParserObj
 			self.bdy: tParser.tParserObj
 			self.elseBdy: tParser.tParserObj | None = None
@@ -825,7 +821,7 @@ class tParser(object):
 	class tAssgn(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type != tTokeniser.tLex.eType.EQ: raise ValueError
+			if self.lexeme.type != tTokeniser.tLex.eType.EQ: raise tParser.xNoMatch
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
@@ -855,7 +851,7 @@ class tParser(object):
 			elif self.lexeme.type == tTokeniser.tLex.eType.CARETEQ: self.type = tParser.tCssgn.eType.EOR
 			elif self.lexeme.type == tTokeniser.tLex.eType.PRCNTEQ: self.type = tParser.tCssgn.eType.MOD
 			elif self.lexeme.type == tTokeniser.tLex.eType.TILEQ: self.type = tParser.tCssgn.eType.NOT
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
@@ -908,9 +904,9 @@ class tParser(object):
 			elif self.lexeme.type == tTokeniser.tLex.eType.TSSZ: self.type = tParser.tTyp.eType.SSZ
 			elif self.lexeme.type == tTokeniser.tLex.eType.TBLN: self.type = tParser.tTyp.eType.BLN
 			elif self.lexeme.type == tTokeniser.tLex.eType.TNON: self.type = tParser.tTyp.eType.NON
-			# elif self.lexeme.type == tTokeniser.tLex.eType.TPTR: self.type = tParser.tTyp.eType.PTR
+			# elif self.lexeme.type == tTokeniser.tLex.eType.TPTR: self.type = tParser.tTyp.eType.PTR #TODO: Maybe reintroduce this as `uintptr` equivalent.
 			elif self.lexeme.type == tTokeniser.tLex.eType.TCHR: self.type = tParser.tTyp.eType.CHR
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2],end='')
@@ -926,7 +922,7 @@ class tParser(object):
 				self.type = tParser.tMTyp.eType.ARR
 				self.arrSz: tParser.tParserObj
 			elif self.lexeme.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tMTyp.eType.PTR
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 		def fnsh(self, lexeme: tTokeniser.tLex):
 			if self.type == tParser.tMTyp.eType.ARR and lexeme.type != tTokeniser.tLex.eType.RBRACK:
 				print(f'ERR: Unclosed square bracket started @ {self.lexeme.fileName, self.lexeme.lineNum, self.lexeme.colNum}.')
@@ -938,13 +934,12 @@ class tParser(object):
 			if self.type == tParser.tMTyp.eType.ARR:
 				print('([])')
 				self.arrSz.print(indnt)
-			else:
-				print('(^)')
+			else: print('(^)')
 			self.child.print(indnt+1)
 	class tCst(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if (self.lexeme.type != tTokeniser.tLex.eType.COLON): raise ValueError
+			if (self.lexeme.type != tTokeniser.tLex.eType.COLON): raise tParser.xNoMatch
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tTyp | tParser.tMTyp
 		def print(self, indnt: int=0):
@@ -955,7 +950,7 @@ class tParser(object):
 	class tLgcA(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if (self.lexeme.type != tTokeniser.tLex.eType.KWAND): raise ValueError
+			if (self.lexeme.type != tTokeniser.tLex.eType.KWAND): raise tParser.xNoMatch
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
@@ -966,7 +961,7 @@ class tParser(object):
 	class tLgcO(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if (self.lexeme.type != tTokeniser.tLex.eType.KWOR): raise ValueError
+			if (self.lexeme.type != tTokeniser.tLex.eType.KWOR): raise tParser.xNoMatch
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
@@ -1020,7 +1015,7 @@ class tParser(object):
 	class tDObj(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type != tTokeniser.tLex.eType.KWOBJ: raise ValueError
+			if self.lexeme.type != tTokeniser.tLex.eType.KWOBJ: raise tParser.xNoMatch
 			self.idnt: tParser.tParserObj
 			self.flds = []
 		def print(self, indnt: int=0):
@@ -1042,7 +1037,28 @@ class tParser(object):
 	class tDUni(tParserObj):
 		def __init__(self, lexeme: tTokeniser.tLex):
 			self.lexeme = lexeme
-			if self.lexeme.type != tTokeniser.tLex.eType.KWUNI: raise ValueError
+			if self.lexeme.type != tTokeniser.tLex.eType.KWUNI: raise tParser.xNoMatch
+			self.idnt: tParser.tParserObj
+			self.flds = []
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.idnt.print(indnt+1)
+			for fld in self.flds: fld.print(indnt+1)
+	class tDOrdA(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			self.idnt: tParser.tParserObj
+			self.val: tParser.tParserObj | None = None
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.idnt.print(indnt+1)
+			if self.val is not None: self.val.print(indnt+1)
+	class tDOrd(tParserObj):
+		def __init__(self, lexeme: tTokeniser.tLex):
+			self.lexeme = lexeme
+			if self.lexeme.type != tTokeniser.tLex.eType.KWORD: raise tParser.xNoMatch
 			self.idnt: tParser.tParserObj
 			self.flds = []
 		def print(self, indnt: int=0):
@@ -1075,22 +1091,20 @@ class tParser(object):
 			ret = tParser.tMTyp(self.curr())
 			self.idx+=1
 			if ret.type == tParser.tMTyp.eType.ARR:
-				try:
-					ret.arrSz = self.expr()
-				except ValueError:
+				try: ret.arrSz = self.expr()
+				except tParser.xNoMatch:
 					print(f'ERR: Expected expression within array type @ {self.curr().fileName, self.curr().lineNum, self.curr().colNum}.')
 					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 					exit(1)
 				ret.fnsh(self.curr())
 				self.idx+=1
 			ret.child = self.mtyp()
-		except ValueError:
-			ret = self.typ()
+		except tParser.xNoMatch: ret = self.typ()
 		return ret
 	def grpng(self):
 		startLine = self.curr().lineNum
 		startCol = self.curr().colNum
-		if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise ValueError
+		if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise tParser.xNoMatch
 		self.idx+=1
 		ret = self.expr()
 		if self.curr().type != tTokeniser.tLex.eType.RPAREN:
@@ -1106,26 +1120,21 @@ class tParser(object):
 	def cst(self):
 		ret = tParser.tCst(self.curr())
 		self.idx+=1
-		try:
-			ret.rhs = self.mtyp()
-		except ValueError:
+		try: ret.rhs = self.mtyp()
+		except tParser.xNoMatch:
 			print(f'ERR: Expected type name after cast @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		return ret
 	def prim(self):
-		try:
-			ret = self.grpng()
-		except ValueError:
-			try:
-				ret = self.idnt()
-			except ValueError:
-				ret = self.lit()
+		try: ret = self.grpng()
+		except tParser.xNoMatch:
+			try: ret = self.idnt()
+			except tParser.xNoMatch: ret = self.lit()
 		try:
 			cst = self.cst()
 			cst.lhs = ret
-		except ValueError:
-			return ret
+		except tParser.xNoMatch: return ret
 		return cst
 	def pstfx(self):
 		root = self.prim()
@@ -1147,24 +1156,19 @@ class tParser(object):
 							exit(1)
 						elif self.curr().type == tTokeniser.tLex.eType.COMMA:
 							self.idx+=1
-						try:
-							root.rhs.append(self.expr())
-						except ValueError, IndexError: pass
+						try: root.rhs.append(self.expr())
+						except tParser.xNoMatch:pass
 					root.fnsh(self.curr())
 					self.idx+=1
 				elif root.type == tParser.tPstFx.eType.ARR:
 					root.rhs = self.expr()
 					root.fnsh(self.curr())
 					self.idx+=1
-				else:
-					root.rhs = self.idnt()
-		except ValueError, IndexError:
-			return root
+				else: root.rhs = self.idnt()
+		except tParser.xNoMatch: return root
 	def unry(self):
-		try:
-			ret = tParser.tUnry(self.curr())
-		except ValueError:
-			return self.pstfx()
+		try: ret = tParser.tUnry(self.curr())
+		except tParser.xNoMatch: return self.pstfx()
 		else:
 			self.idx+=1
 			ret.child = self.unry()
@@ -1178,8 +1182,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.unry()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def term(self):
 		root = self.fact()
 		try:
@@ -1189,8 +1192,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.fact()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def btws(self):
 		root = self.term()
 		try:
@@ -1200,8 +1202,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.term()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def shft(self):
 		root = self.btws()
 		try:
@@ -1211,8 +1212,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.btws()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def cmp(self):
 		root = self.shft()
 		try:
@@ -1222,8 +1222,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.shft()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def eqlt(self):
 		root = self.cmp()
 		try:
@@ -1233,8 +1232,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.cmp()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def lgca(self):
 		root = self.eqlt()
 		try:
@@ -1244,8 +1242,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.eqlt()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def lgco(self):
 		root = self.lgca()
 		try:
@@ -1255,8 +1252,7 @@ class tParser(object):
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.lgca()
-		except ValueError, IndexError:
-			return root
+		except tParser.xNoMatch: return root
 	def expr(self):
 		return self.lgco()
 	def var(self):
@@ -1267,9 +1263,8 @@ class tParser(object):
 			while self.curr().type == tTokeniser.tLex.eType.COMMA:
 				self.idx+=1
 				self.trim()
-				try:
-					ret.vars.append(self.idnt())
-				except ValueError:
+				try: ret.vars.append(self.idnt())
+				except tParser.xNoMatch:
 					print(f'Expected identifier after comma in variable declaration list @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 					exit(1)
@@ -1277,29 +1272,27 @@ class tParser(object):
 				self.idx+=1
 				if self.curr().type == tTokeniser.tLex.eType.EQ: ret.type = None
 				else:
-					try:
-						ret.type = self.mtyp()
-					except ValueError:
+					try: ret.type = self.mtyp()
+					except tParser.xNoMatch:
 						print(f'ERR: Expected colon in variable declaration @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 						print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 						exit(1)
-			else: raise ValueError
+			else: raise tParser.xNoMatch
 			if self.curr().type == tTokeniser.tLex.eType.EQ:
 				self.idx+=1
-				try:
-					ret.val = self.expr()
-				except ValueError:
+				try: ret.val = self.expr()
+				except tParser.xNoMatch:
 					print(f'ERR: Expected expresion following assignment operator in variable definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 					exit(1)
 			return ret
-		except ValueError:
+		except tParser.xNoMatch:
 			self.idx = strt
-			raise ValueError
+			raise tParser.xNoMatch
 	def arg(self):
 		ret = tParser.tArg()
 		try: ret.idnt = self.idnt()
-		except ValueError:
+		except tParser.xNoMatch:
 			print(f'ERR: Invalid identifier for argument name in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
@@ -1309,7 +1302,7 @@ class tParser(object):
 			exit(1)
 		self.idx+=1
 		try: ret.type = self.mtyp()
-		except ValueError:
+		except tParser.xNoMatch:
 			print(f'ERR: Invalid argument type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
@@ -1319,7 +1312,7 @@ class tParser(object):
 		try:
 			ret = tParser.tFnc()
 			ret.idnt = self.idnt()
-			if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise ValueError
+			if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise tParser.xNoMatch
 			self.idx+=1
 			self.trim()
 			try:
@@ -1328,7 +1321,7 @@ class tParser(object):
 					self.idx+=1
 					self.trim()
 					ret.args.append(self.arg())
-			except ValueError: pass
+			except tParser.xNoMatch:pass
 			if self.curr().type != tTokeniser.tLex.eType.RPAREN:
 				print(f'ERR: Expected closing parenthesis during function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
@@ -1339,19 +1332,18 @@ class tParser(object):
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			self.idx+=1
-			try:
-				ret.type = self.mtyp()
-			except ValueError:
+			try: ret.type = self.mtyp()
+			except tParser.xNoMatch:
 				print(f'ERR: Invalid type for function return type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			self.trim()
 			try: ret.bdy = self.blck()
-			except ValueError: ret.bdy = None
+			except tParser.xNoMatch: ret.bdy = None
 			return ret
-		except ValueError:
+		except tParser.xNoMatch:
 			self.idx = strt
-			raise ValueError
+			raise tParser.xNoMatch
 	def rtrn(self):
 		ret = tParser.tRtrn(self.curr())
 		self.idx+=1
@@ -1360,13 +1352,10 @@ class tParser(object):
 	def dfer(self):
 		ret = tParser.tDfer(self.curr())
 		self.idx+=1
-		try:
-			ret.child = self.cssgn()
-		except ValueError:
-			try:
-				ret.child = self.assgn()
-			except ValueError:
-				ret.child = self.expr()
+		try: ret.child = self.cssgn()
+		except tParser.xNoMatch:
+			try: ret.child = self.assgn()
+			except tParser.xNoMatch: ret.child = self.expr()
 		return ret
 	def cntrl(self):
 		ret = tParser.tCntrl(self.curr())
@@ -1374,7 +1363,7 @@ class tParser(object):
 		return ret
 	def dobja(self):
 		ret = tParser.tDObjA(self.curr())
-		ret.idnts.append(self.idnt())
+		ret.idnts.append(self.idnt()) #TODO: Make the identifiers optional for defined types for `obj` 'inheritance' and unnamed `uni`.
 		while self.curr().type == tTokeniser.tLex.eType.COMMA:
 			self.idx+=1
 			self.trim()
@@ -1384,9 +1373,8 @@ class tParser(object):
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
-		try:
-			ret.type = self.mtyp()
-		except ValueError:
+		try: ret.type = self.mtyp()
+		except tParser.xNoMatch:
 			print(f'ERR: Expected type name for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
@@ -1394,9 +1382,8 @@ class tParser(object):
 	def dobj(self):
 		ret = tParser.tDObj(self.curr())
 		self.idx+=1
-		try:
-			ret.idnt = self.idnt()
-		except ValueError:
+		try: ret.idnt = self.idnt()
+		except tParser.xNoMatch:
 			print(f'ERR: Expected identifier name for object definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
@@ -1405,14 +1392,14 @@ class tParser(object):
 		self.idx+=1
 		self.trim()
 		try: ret.flds.append(self.dobja())
-		except ValueError:
+		except tParser.xNoMatch:
 			print(f'ERR: Expected identifier name for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
 			self.trim()
 			try: ret.flds.append(self.dobja())
-			except ValueError: break
+			except tParser.xNoMatch: break
 		self.trim()
 		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
 			print(f'ERR: Expected closing brace for object definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
@@ -1430,7 +1417,7 @@ class tParser(object):
 		self.idx+=1
 		try:
 			ret.type = self.mtyp()
-		except ValueError:
+		except tParser.xNoMatch:
 			print(f'ERR: Expected type name for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
@@ -1438,9 +1425,8 @@ class tParser(object):
 	def duni(self):
 		ret = tParser.tDUni(self.curr())
 		self.idx+=1
-		try:
-			ret.idnt = self.idnt()
-		except ValueError:
+		try: ret.idnt = self.idnt()
+		except tParser.xNoMatch:
 			print(f'ERR: Expected identifier name for union definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
@@ -1449,17 +1435,56 @@ class tParser(object):
 		self.idx+=1
 		self.trim()
 		try: ret.flds.append(self.dobja())
-		except ValueError:
+		except tParser.xNoMatch:
 			print(f'ERR: Expected identifier name for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
 			self.trim()
 			try: ret.flds.append(self.dobja())
-			except ValueError: break
+			except tParser.xNoMatch: break
 		self.trim()
 		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
 			print(f'ERR: Expected closing brace for union definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.idx+=1
+		return ret
+	def dorda(self):
+		ret = tParser.tDOrdA(self.curr())
+		ret.idnt = self.idnt()
+		if self.curr().type == tTokeniser.tLex.eType.EQ:
+			self.idx+=1
+			try: ret.val = self.expr()
+			except tParser.xNoMatch:
+				print(f'ERR: Expected expression for enumeration value @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+				exit(1)
+		return ret
+	def dord(self):
+		ret = tParser.tDOrd(self.curr())
+		self.idx+=1
+		try: ret.idnt = self.idnt()
+		except tParser.xNoMatch:
+			print(f'ERR: Expected identifier for enumeration name @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		self.trim()
+		if self.curr().type != tTokeniser.tLex.eType.LBRACE: return ret
+		self.idx+=1
+		self.trim()
+		try: ret.flds.append(self.dorda())
+		except tParser.xNoMatch:
+			print(f'ERR: Expected identifier name for enumeration field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+			exit(1)
+		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
+			self.trim()
+			try: ret.flds.append(self.dorda())
+			except tParser.xNoMatch: break
+		self.trim()
+		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
+			print(f'ERR: Expected closing brace for enumeration definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
@@ -1480,7 +1505,7 @@ class tParser(object):
 		for mtch in mtchs:
 			try:
 				ret = mtch()
-			except ValueError:
+			except tParser.xNoMatch:
 				continue
 			else:
 				return ret
@@ -1490,14 +1515,12 @@ class tParser(object):
 		try:
 			child = self.stmnt()
 			if child is not None: ret.kids.append(child)
-		except ValueError: pass
+		except tParser.xNoMatch:pass
 		else:
-			try:
-				while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
-					self.trim()
-					child = self.stmnt()
-					if child is not None: ret.kids.append(child)
-			except IndexError: pass
+			while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
+				self.trim()
+				child = self.stmnt()
+				if child is not None: ret.kids.append(child)
 		return ret
 	def blck(self):
 		ret = tParser.tBlck(self.curr())
@@ -1507,18 +1530,18 @@ class tParser(object):
 		self.trim()
 		ret.fnsh(self.curr())
 		self.idx+=1
-		return ret # I might change this to just return `ret.child`, depending on the later steps.
+		return ret #TODO: I might change this to just return `ret.child`, depending on the later steps.
 	def cndbdy(self):
 		self.trim()
 		try:
 			ret = self.blck()
-		except ValueError:
+		except tParser.xNoMatch:
 			ret = self.stmnt()
 		return ret
 	def cnd(self):
 		ret = tParser.tCnd(self.curr())
 		if ret.type != tParser.tCnd.eType.IF:
-			print(f'ERR: `elif` and `else` are not permitted before encountering `if` @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: `elif` and `else` are not permitted before encountering an `if` @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
@@ -1577,14 +1600,14 @@ class tParser(object):
 		retLhs = self.unry()
 		try:
 			ret = tParser.tAssgn(self.curr())
-		except (ValueError, IndexError) as exp:
+		except (tParser.xNoMatch, IndexError) as exp:
 			self.idx = idx
 			raise exp
 		self.idx+=1
 		ret.lhs = retLhs
 		try:
 			ret.rhs = self.assgn()
-		except ValueError:
+		except tParser.xNoMatch:
 			try: ret.rhs = self.expr()
 			except:
 				print(f'ERR: Unexpected lexeme encountered following assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
@@ -1596,14 +1619,14 @@ class tParser(object):
 		retLhs = self.unry()
 		try:
 			ret = tParser.tCssgn(self.curr())
-		except (ValueError, IndexError) as exp:
+		except (tParser.xNoMatch, IndexError) as exp:
 			self.idx = idx
 			raise exp
 		self.idx+=1
 		ret.lhs = retLhs
 		try:
 			ret.rhs = self.assgn()
-		except ValueError:
+		except tParser.xNoMatch:
 			try: ret.rhs = self.expr()
 			except:
 				print(f'ERR: Unexpected lexeme encountered following compound assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
@@ -1614,21 +1637,26 @@ class tParser(object):
 		self.trim()
 		ret = []
 		while True:
-			self.trim()
 			if self.curr().type == tTokeniser.tLex.eType.EOF: break
 			try: ret.append(self.fnc())
-			except ValueError:
+			except tParser.xNoMatch:
 				try: ret.append(self.var())
-				except ValueError:
+				except tParser.xNoMatch:
 					try: ret.append(self.dobj())
-					except ValueError:
-						ret.append(self.duni())
-		self.trim()
+					except tParser.xNoMatch:
+						try: ret.append(self.duni())
+						except tParser.xNoMatch: ret.append(self.dord())
+			if self.curr().type == tTokeniser.tLex.eType.EOF: break
+			if self.curr().type != tTokeniser.tLex.eType.NEWLINE:
+				print(f'ERR: Expected newline @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+				exit(1)
+			self.trim()
 		return ret
 	def run(self):
 		try:
 			self.brnchs = self.prog()
-		except ValueError:
+		except tParser.xNoMatch:
 			print(f'ERR: Unexpected lexeme encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
