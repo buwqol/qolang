@@ -1594,9 +1594,9 @@ class tParser(object):
 		idx = self.idx
 		retLhs = self.unry()
 		try: ret = tParser.tAssgn(self.curr())
-		except (tParser.xNoMatch, IndexError) as exp:
+		except tParser.xNoMatch:
 			self.idx = idx
-			raise exp
+			raise tParser.xNoMatch
 		self.idx+=1
 		ret.lhs = retLhs
 		try: ret.rhs = self.assgn()
@@ -1611,9 +1611,9 @@ class tParser(object):
 		idx = self.idx
 		retLhs = self.unry()
 		try: ret = tParser.tCssgn(self.curr())
-		except (tParser.xNoMatch, IndexError) as exp:
+		except tParser.xNoMatch:
 			self.idx = idx
-			raise exp
+			raise tParser.xNoMatch
 		self.idx+=1
 		ret.lhs = retLhs
 		try: ret.rhs = self.assgn()
