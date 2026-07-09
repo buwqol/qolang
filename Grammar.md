@@ -30,7 +30,7 @@ lgco => lgca (KWOR lgca)\*
 
 expr => lgco
 
-rtrn => KWRET expr
+rtrn => KWRET expr?
 
 dfer => KWLTR (expr | assgn | cssgn)
 
