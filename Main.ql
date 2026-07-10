@@ -4,6 +4,8 @@ TestFunc(tf: bln): bln
 	ret tf
 }
 
+check : ^(is32, 1): non
+
 ; Our program's entry point.
 Entry(num: is32, val: ^^chr): is32
 {

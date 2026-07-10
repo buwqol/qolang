@@ -749,7 +749,8 @@ class tParser(object):
 			if self.type == tParser.tCntrl.eType.CONT: print('(CONT)')
 			elif self.type == tParser.tCntrl.eType.BRK: print('(BRK)')
 	class tStLst(tParserObj):
-		def __init__(self):
+		def __init__(self, lxm: tTokeniser.tLex):
+			self.lxm = lxm
 			self.kids = []
 		def print(self, indnt: int=0):
 			for idx in range(len(self.kids)): self.kids[idx].print(indnt)
@@ -917,7 +918,7 @@ class tParser(object):
 			PTR=enum.auto()
 		def __init__(self, lxm: tTokeniser.tLex):
 			self.lxm = lxm
-			self.chld: tParser.tTyp | tParser.tMTyp
+			self.chld: tParser.tTyp | tParser.tMTyp | tParser.tFTyp
 			if self.lxm.type == tTokeniser.tLex.eType.LBRACK:
 				self.type = tParser.tMTyp.eType.ARR
 				self.arrSz: tParser.tParserObj
@@ -936,12 +937,22 @@ class tParser(object):
 				self.arrSz.print(indnt)
 			else: print('(^)')
 			self.chld.print(indnt+1)
+	class tFTyp(tParserObj):
+		def __init__(self, lxm: tTokeniser.tLex):
+			self.lxm = lxm
+			self.type: tParser.tParserObj
+			self.args = []
+		def print(self, indnt: int=0):
+			for _ in range(indnt): print('\t',end='')
+			print(str(type(self)).split('.')[-1][1:-2])
+			self.type.print(indnt+1)
+			for arg in self.args: arg.print(indnt+1)
 	class tCst(tParserObj):
 		def __init__(self, lxm: tTokeniser.tLex):
 			self.lxm = lxm
 			if (self.lxm.type != tTokeniser.tLex.eType.COLON): raise tParser.xNoMatch
 			self.lhs: tParser.tParserObj
-			self.rhs: tParser.tTyp | tParser.tMTyp
+			self.rhs: tParser.tTyp | tParser.tMTyp | tParser.tFTyp
 		def print(self, indnt: int=0):
 			for _ in range(indnt): print('\t',end='')
 			print(str(type(self)).split('.')[-1][1:-2])
@@ -970,7 +981,8 @@ class tParser(object):
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
 	class tVar(tParserObj):
-		def __init__(self):
+		def __init__(self, lxm: tTokeniser.tLex):
+			self.lxm = lxm
 			self.vars = []
 			self.type: tParser.tParserObj | None = None
 			self.val: tParser.tParserObj | None = None
@@ -981,7 +993,8 @@ class tParser(object):
 			if self.type is not None: self.type.print(indnt+1)
 			if self.val is not None: self.val.print(indnt+1)
 	class tFnc(tParserObj):
-		def __init__(self):
+		def __init__(self, lxm: tTokeniser.tLex):
+			self.lxm = lxm
 			self.idnt: tParser.tIdnt
 			self.args = []
 			self.type: tParser.tParserObj
@@ -994,7 +1007,8 @@ class tParser(object):
 			self.type.print(indnt+1)
 			if self.bdy is not None: self.bdy.print(indnt+1)
 	class tArg(tParserObj):
-		def __init__(self):
+		def __init__(self, lxm: tTokeniser.tLex):
+			self.lxm = lxm
 			self.idnt: tParser.tIdnt
 			self.type: tParser.tParserObj
 		def print(self, indnt: int=0):
@@ -1099,7 +1113,42 @@ class tParser(object):
 				ret.fnsh(self.curr())
 				self.idx+=1
 			ret.chld = self.mtyp()
-		except tParser.xNoMatch: ret = self.typ()
+		except tParser.xNoMatch:
+			try: ret = self.ftyp()
+			except tParser.xNoMatch: ret = self.typ()
+		return ret
+	def ftyp(self):
+		startLine = self.curr().lineNum
+		startCol = self.curr().colNum
+		if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise tParser.xNoMatch
+		ret = tParser.tFTyp(self.curr())
+		self.idx+=1
+		try:
+			ret.args.append(self.mtyp())
+		except self.xNoMatch:pass
+		else:
+			while self.curr().type == tTokeniser.tLex.eType.COMMA:
+				self.idx+=1
+				try: ret.args.append(self.mtyp())
+				except tParser.xNoMatch:
+					print(f'ERR: Invalid argument type during function pointer @ {self.curr().fileName, startLine, startCol}.')
+					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					exit(1)
+		if self.curr().type != tTokeniser.tLex.eType.RPAREN:
+			print(f'ERR: Unclosed parenthesis started during function pointer @ {self.curr().fileName, startLine, startCol}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			exit(1)
+		self.idx+=1
+		if self.curr().type != tTokeniser.tLex.eType.COLON:
+			print(f'ERR: Expected colon for function pointer return type @ {self.curr().fileName, startLine, startCol}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			exit(1)
+		self.idx+=1
+		try: ret.type = self.mtyp()
+		except tParser.xNoMatch:
+			print(f'ERR: Invalid return type during function pointer @ {self.curr().fileName, startLine, startCol}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			exit(1)
 		return ret
 	def grpng(self):
 		startLine = self.curr().lineNum
@@ -1238,7 +1287,7 @@ class tParser(object):
 		try:
 			while True:
 				tmp = tParser.tLgcA(self.curr())
-				self.idx +=1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.eqlt()
@@ -1248,7 +1297,7 @@ class tParser(object):
 		try:
 			while True:
 				tmp = tParser.tLgcO(self.curr())
-				self.idx +=1
+				self.idx+=1
 				tmp.lhs = root
 				root = tmp
 				root.rhs = self.lgca()
@@ -1258,7 +1307,7 @@ class tParser(object):
 	def var(self):
 		strt = self.idx
 		try:
-			ret = tParser.tVar()
+			ret = tParser.tVar(self.curr())
 			ret.vars.append(self.idnt())
 			while self.curr().type == tTokeniser.tLex.eType.COMMA:
 				self.idx+=1
@@ -1290,7 +1339,7 @@ class tParser(object):
 			self.idx = strt
 			raise tParser.xNoMatch
 	def arg(self):
-		ret = tParser.tArg()
+		ret = tParser.tArg(self.curr())
 		try: ret.idnt = self.idnt()
 		except tParser.xNoMatch:
 			print(f'ERR: Invalid identifier for argument name in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
@@ -1310,7 +1359,7 @@ class tParser(object):
 	def fnc(self):
 		strt = self.idx
 		try:
-			ret = tParser.tFnc()
+			ret = tParser.tFnc(self.curr())
 			ret.idnt = self.idnt()
 			if self.curr().type != tTokeniser.tLex.eType.LPAREN: raise tParser.xNoMatch
 			self.idx+=1
@@ -1360,7 +1409,7 @@ class tParser(object):
 		return ret
 	def cntrl(self):
 		ret = tParser.tCntrl(self.curr())
-		self.idx += 1
+		self.idx+=1
 		return ret
 	def dobja(self):
 		ret = tParser.tDObjA(self.curr())
@@ -1508,7 +1557,7 @@ class tParser(object):
 			else: return ret
 		return None
 	def stlst(self):
-		ret = tParser.tStLst()
+		ret = tParser.tStLst(self.curr())
 		try:
 			chld = self.stmnt()
 			if chld is not None: ret.kids.append(chld)

@@ -2,7 +2,9 @@ lit => LITIU | LITFP | LITSTR | LITCHR | KWTRUE | KWFALSE | KWNULL
 
 typ => TIU8 | TIS8 | TIU16 | TIS16 | TIU32 | TIS32 | TIU64 | TIS64 | TFP32 | TFP64 | TBLN | TUSZ | TSSZ | TNONE | TPTR | IDENT
 
-mtyp => CARET mtyp | LBRACK expr RBRACK mtyp | typ
+ftyp => LPAREN (mtyp (COMMA mtyp)*)? RPAREN COLON mtyp
+
+mtyp => CARET mtyp | LBRACK expr RBRACK mtyp | ftyp | typ
 
 cst => COLON mtyp
 
