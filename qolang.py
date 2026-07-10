@@ -1719,19 +1719,23 @@ class tScop(object):
 			self.type: tScop.tType.eType | None = None
 			self.decled = False
 			self.defed = False
-	class tVar(object):
-		class eType(enum.Enum):
-			VAR=enum.auto()
-			FNC=enum.auto()
+	class tFnc(object):
 		def __init__(self):
 			self.decled = False
 			self.defed = False
-			self.type: tScop.tVar.eType | None = None
+			self.lxm: tTokeniser.tLex | None = None
 		def print(self, indnt: int=0):
 			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2],end='')
-			if self.type == tScop.tVar.eType.VAR: print('(VAR)', end='')
-			elif self.type == tScop.tVar.eType.FNC: print('(FNC)', end='')
+			print(f', decled: {self.decled}, defed: {self.defed}')
+	class tVar(object):
+		def __init__(self):
+			self.decled = False
+			self.defed = False
+			self.lxm: tTokeniser.tLex | None = None
+		def print(self, indnt: int=0):
+			doIndnt(indnt)
+			print(str(type(self)).split('.')[-1][1:-2],end='')
 			print(f', decled: {self.decled}, defed: {self.defed}')
 
 	def __init__(self):
@@ -1758,20 +1762,26 @@ if __name__ == '__main__':
 		glbl = tScop()
 		for elem in parser.brnchs:
 			if isinstance(elem, tParser.tFnc):
-				fnc = tScop.tVar()
+				fnc = tScop.tFnc()
 				fnc.decled = True
 				if elem.bdy is not None: fnc.defed = True
-				fnc.type = tScop.tVar.eType.FNC
 				if elem.idnt.rawValue in glbl.vars:
 					if fnc.defed == True and glbl.vars[elem.idnt.rawValue].defed == True:
 						print(f'ERR: Redefinition of function \'{elem.idnt.rawValue}\' @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+						print(f'\tFirst defined @ {glbl.vars[elem.idnt.rawValue].lxm.fileName}:{glbl.vars[elem.idnt.rawValue].lxm.lineNum}:{glbl.vars[elem.idnt.rawValue].lxm.colNum}.')
 						exit(1)
+				fnc.lxm = elem.lxm
 				glbl.vars[elem.idnt.rawValue] = fnc
 			elif isinstance(elem, tParser.tVar):
 				for idnt in elem.vars:
 					var = tScop.tVar()
 					var.decled = True
 					if elem.val is not None: var.defed = True
-					var.type = tScop.tVar.eType.VAR
+					if idnt.rawValue in glbl.vars:
+						if var.defed == True and glbl.vars[idnt.rawValue].defed == True:
+							print(f'ERR: Redefinition of variable \'{idnt.rawValue}\' @ {idnt.lxm.fileName}:{idnt.lxm.lineNum}:{idnt.lxm.colNum}.')
+							print(f'\tFirst defined @ {glbl.vars[idnt.rawValue].lxm.fileName}:{glbl.vars[idnt.rawValue].lxm.lineNum}:{glbl.vars[idnt.rawValue].lxm.colNum}.')
+							exit(1)
+					var.lxm = idnt.lxm
 					glbl.vars[idnt.rawValue] = var
 		glbl.print()
