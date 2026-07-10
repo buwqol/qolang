@@ -4,7 +4,7 @@ TestFunc(tf: bln): bln
 	ret tf
 }
 
-check : ^(is32, 1): non
+check1, check2, check3 : ^(is32, is32): non = Null
 
 ; Our program's entry point.
 Entry(num: is32, val: ^^chr): is32

@@ -5,6 +5,8 @@ import os
 import io
 import enum
 import abc
+def doIndnt(indnt: int=0):
+	for _ in range(indnt): print('\t',end='')
 class tTokeniser(object):
 	class tLex(object):
 		class eType(enum.Enum):
@@ -518,7 +520,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.LITNULL: self.type = tParser.tLit.eType.NULL
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tLit.eType.IU: print('(IU) ' + str(self.lxm.calcInt))
 			elif self.type == tParser.tLit.eType.FP: print('(FP) ' + str(self.lxm.calcFlt))
@@ -531,8 +533,9 @@ class tParser(object):
 		def __init__(self, lxm: tTokeniser.tLex):
 			self.lxm = lxm
 			if lxm.type != tTokeniser.tLex.eType.IDENT: raise tParser.xNoMatch
+			self.rawValue = self.lxm.rawValue
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			print('(' + self.lxm.rawValue + ')')
 	class tPstFx(tParserObj):
@@ -558,7 +561,7 @@ class tParser(object):
 				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' @ {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
 				exit(1)
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tPstFx.eType.CALL: print('(())')
 			elif self.type == tParser.tPstFx.eType.ARR: print('([])')
@@ -586,7 +589,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.ATSGN: self.type = tParser.tUnry.eType.AT
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tUnry.eType.POS: print('(+)')
 			elif self.type == tParser.tUnry.eType.NEG: print('(-)')
@@ -609,7 +612,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.PRCNT: self.type = tParser.tFact.eType.MOD
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tFact.eType.MUL: print('(*)')
 			elif self.type == tParser.tFact.eType.DIV: print('(/)')
@@ -628,7 +631,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.DASH: self.type = tParser.tTerm.eType.SUB
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tTerm.eType.ADD: print('(+)')
 			elif self.type == tParser.tTerm.eType.SUB: print('(-)')
@@ -648,7 +651,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.CARET: self.type = tParser.tBtws.eType.EOR
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tBtws.eType.AND: print('(&)')
 			elif self.type == tParser.tBtws.eType.OR: print('(|)')
@@ -667,7 +670,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.GTGT: self.type = tParser.tShft.eType.RSHF
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tShft.eType.LSHF: print('(<<)')
 			elif self.type == tParser.tShft.eType.RSHF: print('(>>)')
@@ -689,7 +692,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.GTEQ: self.type = tParser.tCmp.eType.GREQ
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tCmp.eType.LS: print('(<)')
 			elif self.type == tParser.tCmp.eType.LSEQ: print('(<=)')
@@ -709,7 +712,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.EXCLAMEQ: self.type = tParser.tEqlt.eType.NEQUL
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tEqlt.eType.EQUL: print('(==)')
 			elif self.type == tParser.tEqlt.eType.NEQUL: print('(!=)')
@@ -722,7 +725,7 @@ class tParser(object):
 			self.chld: tParser.tParserObj | None = None
 			if lxm.type != tTokeniser.tLex.eType.KWRET: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			if self.chld is not None: self.chld.print(indnt+1)
 	class tDfer(tParserObj):
@@ -731,7 +734,7 @@ class tParser(object):
 			self.chld: tParser.tParserObj
 			if lxm.type != tTokeniser.tLex.eType.KWLTR: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.chld.print(indnt+1)
 	class tCntrl(tParserObj):
@@ -744,7 +747,7 @@ class tParser(object):
 			elif lxm.type == tTokeniser.tLex.eType.KWCONT: self.type = tParser.tCntrl.eType.CONT
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2],end='')
 			if self.type == tParser.tCntrl.eType.CONT: print('(CONT)')
 			elif self.type == tParser.tCntrl.eType.BRK: print('(BRK)')
@@ -765,7 +768,7 @@ class tParser(object):
 				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' @ {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
 				exit(1)
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			for idx in range(len(self.chld.kids)): self.chld.kids[idx].print(indnt+1)
 	class tCnd(tParserObj):
@@ -784,7 +787,7 @@ class tParser(object):
 			self.elifs = []
 			self.elseBdy: tParser.tParserObj | None = None
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			if self.type == tParser.tCnd.eType.IF:
 				print('(IF)')
@@ -792,12 +795,12 @@ class tParser(object):
 				self.bdy.print(indnt+1)
 				for idx in range(len(self.elifs)): self.elifs[idx].print(indnt)
 				if self.elseBdy is not None:
-					for _ in range(indnt): print('\t',end='')
+					doIndnt(indnt)
 					print(str(type(self)).split('.')[-1][1:-2], end='')
 					print('(ELSE)')
 					self.elseBdy.print(indnt+1)
 			elif self.type == tParser.tCnd.eType.ELIF:
-				for _ in range(indnt): print('\t',end='')
+				doIndnt(indnt)
 				print('(ELIF)')
 				self.cnd.print(indnt+1)
 				self.bdy.print(indnt+1)
@@ -809,13 +812,13 @@ class tParser(object):
 			self.bdy: tParser.tParserObj
 			self.elseBdy: tParser.tParserObj | None = None
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2], end='')
 			print('(WHILE)')
 			self.cnd.print(indnt+1)
 			self.bdy.print(indnt+1)
 			if self.elseBdy is not None:
-				for _ in range(indnt): print('\t',end='')
+				doIndnt(indnt)
 				print(str(type(self)).split('.')[-1][1:-2], end='')
 				print('(ELSE)')
 				self.elseBdy.print(indnt+1)
@@ -826,7 +829,7 @@ class tParser(object):
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
@@ -856,7 +859,7 @@ class tParser(object):
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2],end='')
 			if self.type == tParser.tCssgn.eType.ADD: print('(+=)')
 			elif self.type == tParser.tCssgn.eType.SUB: print('(-=)')
@@ -909,7 +912,7 @@ class tParser(object):
 			elif self.lxm.type == tTokeniser.tLex.eType.TCHR: self.type = tParser.tTyp.eType.CHR
 			else: raise tParser.xNoMatch
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2],end='')
 			print(f'({self.type.name})')
 	class tMTyp(tParserObj):
@@ -930,7 +933,7 @@ class tParser(object):
 				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' @ {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
 				exit(1)
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2],end='')
 			if self.type == tParser.tMTyp.eType.ARR:
 				print('([])')
@@ -943,7 +946,7 @@ class tParser(object):
 			self.type: tParser.tParserObj
 			self.args = []
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.type.print(indnt+1)
 			for arg in self.args: arg.print(indnt+1)
@@ -954,7 +957,7 @@ class tParser(object):
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tTyp | tParser.tMTyp | tParser.tFTyp
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
@@ -965,7 +968,7 @@ class tParser(object):
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
@@ -976,7 +979,7 @@ class tParser(object):
 			self.lhs: tParser.tParserObj
 			self.rhs: tParser.tParserObj
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.lhs.print(indnt+1)
 			self.rhs.print(indnt+1)
@@ -987,7 +990,7 @@ class tParser(object):
 			self.type: tParser.tParserObj | None = None
 			self.val: tParser.tParserObj | None = None
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			for var in self.vars: var.print(indnt+1)
 			if self.type is not None: self.type.print(indnt+1)
@@ -1000,7 +1003,7 @@ class tParser(object):
 			self.type: tParser.tParserObj
 			self.bdy: tParser.tParserObj | None = None
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			for arg in self.args: arg.print(indnt+1)
@@ -1012,7 +1015,7 @@ class tParser(object):
 			self.idnt: tParser.tIdnt
 			self.type: tParser.tParserObj
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			self.type.print(indnt+1)
@@ -1022,7 +1025,7 @@ class tParser(object):
 			self.type: tParser.tParserObj
 			self.idnts = []
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			for idnt in self.idnts: idnt.print(indnt+1)
 			self.type.print(indnt+1)
@@ -1033,7 +1036,7 @@ class tParser(object):
 			self.idnt: tParser.tParserObj
 			self.flds = []
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			for fld in self.flds: fld.print(indnt+1)
@@ -1044,7 +1047,7 @@ class tParser(object):
 			self.idnt: tParser.tParserObj
 			self.type: tParser.tParserObj
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			self.type.print(indnt+1)
@@ -1055,7 +1058,7 @@ class tParser(object):
 			self.idnt: tParser.tParserObj
 			self.flds = []
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			for fld in self.flds: fld.print(indnt+1)
@@ -1065,7 +1068,7 @@ class tParser(object):
 			self.idnt: tParser.tParserObj
 			self.val: tParser.tParserObj | None = None
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			if self.val is not None: self.val.print(indnt+1)
@@ -1076,7 +1079,7 @@ class tParser(object):
 			self.idnt: tParser.tParserObj
 			self.flds = []
 		def print(self, indnt: int=0):
-			for _ in range(indnt): print('\t',end='')
+			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			self.idnt.print(indnt+1)
 			for fld in self.flds: fld.print(indnt+1)
@@ -1386,7 +1389,7 @@ class tParser(object):
 				print(f'ERR: Invalid type for function return type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
-			self.trim()
+			self.trim() #TODO: Rollback trim if we don't get a function body
 			try: ret.bdy = self.blck()
 			except tParser.xNoMatch: ret.bdy = None
 			return ret
@@ -1706,6 +1709,39 @@ class tParser(object):
 	def print(self):
 		for brnch in self.brnchs: brnch.print()
 
+class tScop(object):
+	class tType(object):
+		class eType(enum.Enum):
+			UNI=enum.auto()
+			OBJ=enum.auto()
+			ORD=enum.auto()
+		def __init__(self):
+			self.type: tScop.tType.eType | None = None
+			self.decled = False
+			self.defed = False
+	class tVar(object):
+		class eType(enum.Enum):
+			VAR=enum.auto()
+			FNC=enum.auto()
+		def __init__(self):
+			self.decled = False
+			self.defed = False
+			self.type: tScop.tVar.eType | None = None
+		def print(self, indnt: int=0):
+			doIndnt(indnt)
+			print(str(type(self)).split('.')[-1][1:-2],end='')
+			if self.type == tScop.tVar.eType.VAR: print('(VAR)', end='')
+			elif self.type == tScop.tVar.eType.FNC: print('(FNC)', end='')
+			print(f', decled: {self.decled}, defed: {self.defed}')
+
+	def __init__(self):
+		self.vars = {}
+		self.typs = {}
+	def print(self):
+		for k in self.vars:
+			print(f'{k} -> ', end='')
+			self.vars[k].print()
+
 if __name__ == '__main__':
 	argParser = argparse.ArgumentParser(prog='qolang', description='qolang language compiler.')
 	argParser.add_argument('infiles', help='Input source files.', nargs='+')
@@ -1718,4 +1754,24 @@ if __name__ == '__main__':
 		parser = tParser()
 		parser.lex(fileName)
 		parser.run()
-		parser.print()
+		# parser.print()
+		glbl = tScop()
+		for elem in parser.brnchs:
+			if isinstance(elem, tParser.tFnc):
+				fnc = tScop.tVar()
+				fnc.decled = True
+				if elem.bdy is not None: fnc.defed = True
+				fnc.type = tScop.tVar.eType.FNC
+				if elem.idnt.rawValue in glbl.vars:
+					if fnc.defed == True and glbl.vars[elem.idnt.rawValue].defed == True:
+						print(f'ERR: Redefinition of function \'{elem.idnt.rawValue}\' @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+						exit(1)
+				glbl.vars[elem.idnt.rawValue] = fnc
+			elif isinstance(elem, tParser.tVar):
+				for idnt in elem.vars:
+					var = tScop.tVar()
+					var.decled = True
+					if elem.val is not None: var.defed = True
+					var.type = tScop.tVar.eType.VAR
+					glbl.vars[idnt.rawValue] = var
+		glbl.print()
