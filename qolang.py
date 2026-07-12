@@ -1001,7 +1001,7 @@ class tParser(object):
 			self.idnt: tParser.tIdnt
 			self.args = []
 			self.type: tParser.tParserObj
-			self.bdy: tParser.tParserObj | None = None
+			self.bdy: tParser.tBlck | None = None
 		def print(self, indnt: int=0):
 			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
@@ -1343,11 +1343,7 @@ class tParser(object):
 			raise tParser.xNoMatch
 	def arg(self):
 		ret = tParser.tArg(self.curr())
-		try: ret.idnt = self.idnt()
-		except tParser.xNoMatch:
-			print(f'ERR: Invalid identifier for argument name in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
-			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
-			exit(1)
+		ret.idnt = self.idnt()
 		if self.curr().type != tTokeniser.tLex.eType.COLON:
 			print(f'ERR: Expected colon in argument for function argument definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
@@ -1372,7 +1368,11 @@ class tParser(object):
 				while self.curr().type == tTokeniser.tLex.eType.COMMA:
 					self.idx+=1
 					self.trim()
-					ret.args.append(self.arg())
+					try: ret.args.append(self.arg())
+					except tParser.xNoMatch:
+						print(f'ERR: Invalid identifier for argument name in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+						print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
+						exit(1)
 			except tParser.xNoMatch:pass
 			if self.curr().type != tTokeniser.tLex.eType.RPAREN:
 				print(f'ERR: Expected closing parenthesis during function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
@@ -1737,14 +1737,68 @@ class tScop(object):
 			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2],end='')
 			print(f', decled: {self.decled}, defed: {self.defed}')
-
-	def __init__(self):
+	def __init__(self, isGlbl: bool=False):
 		self.vars = {}
 		self.typs = {}
-	def print(self):
+		self.isGlbl = isGlbl
+		self.kids = []
+		self.prnt: tScop | None = None
+		self.idnt = ''
+	def print(self, indnt: int=0):
 		for k in self.vars:
+			doIndnt(indnt)
 			print(f'{k} -> ', end='')
 			self.vars[k].print()
+		for kid in self.kids:
+			doIndnt(indnt)
+			print(kid.idnt + ':')
+			kid.print(indnt+1)
+	def parse(self, brnchs: list):
+		for elem in brnchs:
+			if isinstance(elem, tParser.tFnc):
+				if self.isGlbl == False:
+					print(f'ERR: Function definitions are forbidden everywhere except in global scope @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+					exit(1)
+				fnc = tScop.tFnc()
+				fnc.decled = True
+				if elem.bdy is not None:
+					if elem.idnt.rawValue in self.vars and self.vars[elem.idnt.rawValue].defed == True:
+						print(f'ERR: Redefinition of function \'{elem.idnt.rawValue}\' @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+						print(f'\tFirst defined @ {self.vars[elem.idnt.rawValue].lxm.fileName}:{self.vars[elem.idnt.rawValue].lxm.lineNum}:{self.vars[elem.idnt.rawValue].lxm.colNum}.')
+						exit(1)
+					fnc.defed = True
+					kid = tScop()
+					kid.idnt = elem.idnt.rawValue
+					for arg in elem.args:
+						var = tScop.tVar()
+						var.decled = True
+						var.defed = True
+						kid.vars[arg.idnt.rawValue] = var
+					kid.parse(elem.bdy.chld.kids)
+					kid.prnt = self
+					self.kids.append(kid)
+				fnc.lxm = elem.lxm
+				self.vars[elem.idnt.rawValue] = fnc
+			elif isinstance(elem, tParser.tVar):
+				for idnt in elem.vars:
+					var = tScop.tVar()
+					var.decled = True
+					if elem.val is not None: var.defed = True
+					if idnt.rawValue in self.vars:
+						if var.defed == True and self.vars[idnt.rawValue].defed == True:
+							print(f'ERR: Redefinition of variable \'{idnt.rawValue}\' @ {idnt.lxm.fileName}:{idnt.lxm.lineNum}:{idnt.lxm.colNum}.')
+							print(f'\tFirst defined @ {self.vars[idnt.rawValue].lxm.fileName}:{self.vars[idnt.rawValue].lxm.lineNum}:{self.vars[idnt.rawValue].lxm.colNum}.')
+							exit(1)
+					var.lxm = idnt.lxm
+					self.vars[idnt.rawValue] = var
+			elif isinstance(elem, tParser.tBlck):
+				kid = tScop()
+				kid.parse(elem.chld.kids)
+				kid.prnt = self
+				self.kids.append(kid)
+			else:
+				print(f'ERR: Unexpected @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+				exit(1)
 
 if __name__ == '__main__':
 	argParser = argparse.ArgumentParser(prog='qolang', description='qolang language compiler.')
@@ -1758,30 +1812,10 @@ if __name__ == '__main__':
 		parser = tParser()
 		parser.lex(fileName)
 		parser.run()
-		# parser.print()
-		glbl = tScop()
-		for elem in parser.brnchs:
-			if isinstance(elem, tParser.tFnc):
-				fnc = tScop.tFnc()
-				fnc.decled = True
-				if elem.bdy is not None: fnc.defed = True
-				if elem.idnt.rawValue in glbl.vars:
-					if fnc.defed == True and glbl.vars[elem.idnt.rawValue].defed == True:
-						print(f'ERR: Redefinition of function \'{elem.idnt.rawValue}\' @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
-						print(f'\tFirst defined @ {glbl.vars[elem.idnt.rawValue].lxm.fileName}:{glbl.vars[elem.idnt.rawValue].lxm.lineNum}:{glbl.vars[elem.idnt.rawValue].lxm.colNum}.')
-						exit(1)
-				fnc.lxm = elem.lxm
-				glbl.vars[elem.idnt.rawValue] = fnc
-			elif isinstance(elem, tParser.tVar):
-				for idnt in elem.vars:
-					var = tScop.tVar()
-					var.decled = True
-					if elem.val is not None: var.defed = True
-					if idnt.rawValue in glbl.vars:
-						if var.defed == True and glbl.vars[idnt.rawValue].defed == True:
-							print(f'ERR: Redefinition of variable \'{idnt.rawValue}\' @ {idnt.lxm.fileName}:{idnt.lxm.lineNum}:{idnt.lxm.colNum}.')
-							print(f'\tFirst defined @ {glbl.vars[idnt.rawValue].lxm.fileName}:{glbl.vars[idnt.rawValue].lxm.lineNum}:{glbl.vars[idnt.rawValue].lxm.colNum}.')
-							exit(1)
-					var.lxm = idnt.lxm
-					glbl.vars[idnt.rawValue] = var
+		print('--- SYNTAX PARSER ---')
+		parser.print()
+		glbl = tScop(True)
+		glbl.idnt = 'GLBL'
+		glbl.parse(parser.brnchs)
+		print('\n--- SEMANTIC PARSER ---')
 		glbl.print()
