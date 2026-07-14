@@ -489,7 +489,7 @@ class tTokeniser(object):
 					self.add(tTokeniser.tLex.eType.LITCHR, f'\'{self.curr}\'', lineNum, colNum, calcInt=ord(self.curr))
 					self.nxt()
 			else:
-				print(f'ERR: Unknown lxm \'{self.curr}\' encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
 		self.add(tTokeniser.tLex.eType.EOF)
 class tParser(object):
@@ -1655,7 +1655,7 @@ class tParser(object):
 		except tParser.xNoMatch:
 			try: ret.rhs = self.expr()
 			except tParser.xNoMatch:
-				print(f'ERR: Unexpected lxm encountered following assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Unexpected lexeme encountered following assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 		return ret
@@ -1699,11 +1699,11 @@ class tParser(object):
 	def run(self):
 		try: self.brnchs = self.prog()
 		except tParser.xNoMatch:
-			print(f'ERR: Unexpected lxm encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unexpected lexeme encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		if self.curr().type != tTokeniser.tLex.eType.EOF:
-			print(f'ERR: Unhandled lxms, starting @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unhandled lexemes, starting @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 	def print(self):
@@ -1811,8 +1811,10 @@ if __name__ == '__main__':
 	for fileName in args.infiles:
 		parser = tParser()
 		parser.lex(fileName)
+		print('--- TOKENISER ---')
+		for lxm in parser.lxms: print(lxm)
 		parser.run()
-		print('--- SYNTAX PARSER ---')
+		print('\n--- SYNTAX PARSER ---')
 		parser.print()
 		glbl = tScop(True)
 		glbl.idnt = 'GLBL'
