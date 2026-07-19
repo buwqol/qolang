@@ -12,3 +12,8 @@ fnc(arg1 : iu32, arg2 : iu32): non
 		f : iu32
 	}
 }
+
+main(count : is32, values : ^^chr): is32
+{
+
+}

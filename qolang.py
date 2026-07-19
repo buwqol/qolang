@@ -1744,6 +1744,11 @@ class tScop(object):
 		self.kids = []
 		self.prnt: tScop | None = None
 		self.idnt = ''
+	def isvardecled(self, idnt : str):
+		if idnt in self.vars.keys(): return True
+		elif self.prnt is None: return False
+		elif idnt in self.prnt.vars.keys(): return True
+		return self.prnt.isvardecled(idnt)
 	def print(self, indnt: int=0):
 		for k in self.vars:
 			doIndnt(indnt)
@@ -1751,8 +1756,13 @@ class tScop(object):
 			self.vars[k].print()
 		for kid in self.kids:
 			doIndnt(indnt)
-			print(kid.idnt + ':')
+			print(kid.idnt)
 			kid.print(indnt+1)
+	def getvar(self, idnt):
+		if idnt in self.vars.keys(): return self.vars[idnt]
+		assert(self.prnt is not None)
+		if idnt in self.prnt.vars.keys(): return self.prnt.vars[idnt]
+		return self.prnt.getvar(idnt)
 	def parse(self, brnchs: list):
 		for elem in brnchs:
 			if isinstance(elem, tParser.tFnc):
@@ -1774,8 +1784,8 @@ class tScop(object):
 						var.decled = True
 						var.defed = True
 						kid.vars[arg.idnt.rawValue] = var
-					kid.parse(elem.bdy.chld.kids)
 					kid.prnt = self
+					kid.parse(elem.bdy.chld.kids)
 					self.kids.append(kid)
 				fnc.lxm = elem.lxm
 				self.vars[elem.idnt.rawValue] = fnc
@@ -1784,17 +1794,18 @@ class tScop(object):
 					var = tScop.tVar()
 					var.decled = True
 					if elem.val is not None: var.defed = True
-					if idnt.rawValue in self.vars:
-						if var.defed == True and self.vars[idnt.rawValue].defed == True:
-							print(f'ERR: Redefinition of variable \'{idnt.rawValue}\' @ {idnt.lxm.fileName}:{idnt.lxm.lineNum}:{idnt.lxm.colNum}.')
-							print(f'\tFirst defined @ {self.vars[idnt.rawValue].lxm.fileName}:{self.vars[idnt.rawValue].lxm.lineNum}:{self.vars[idnt.rawValue].lxm.colNum}.')
-							exit(1)
+					if self.isvardecled(idnt.rawValue):
+						print(f'ERR: Redeclaration of variable \'{idnt.rawValue}\' @ {idnt.lxm.fileName}:{idnt.lxm.lineNum}:{idnt.lxm.colNum}.')
+						var = self.getvar(idnt.rawValue)
+						try: print(f'\tFirst defined @ {var.lxm.fileName}:{var.lxm.lineNum}:{var.lxm.colNum}.')
+						except AttributeError: print('\tAlready defined as function argument.')
+						exit(1)
 					var.lxm = idnt.lxm
 					self.vars[idnt.rawValue] = var
 			elif isinstance(elem, tParser.tBlck):
 				kid = tScop()
-				kid.parse(elem.chld.kids)
 				kid.prnt = self
+				kid.parse(elem.chld.kids)
 				self.kids.append(kid)
 			else:
 				print(f'ERR: Unexpected @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
@@ -1807,7 +1818,7 @@ if __name__ == '__main__':
 	for fileName in args.infiles:
 		if not os.path.exists(fileName):
 			print(f'ERR: File \'{fileName}\' does not exist.')
-			sys.exit(1)
+			exit(1)
 	for fileName in args.infiles:
 		parser = tParser()
 		parser.lex(fileName)
