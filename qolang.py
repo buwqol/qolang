@@ -104,23 +104,19 @@ class tTokeniser(object):
 		self.colNum = 0
 		self.lineNum = 1
 		self.fileName = fileName
-		self.file = open(fileName, 'r')
+		with open(fileName, 'rb') as f: self.buf = f.read().decode()
 		self.curr = ''
 		self.stck = ''
 		self.lxms = []
-		self.lastReadByte = 1
+		self.lastReadByte = 0
 		self.parenDepth = 0
 		self.brackDepth = 0
-	def __del__(self):
-		self.file.close()
 	def nxt(self):
+		self.curr = self.buf[self.lastReadByte]
 		self.lastReadByte += 1
-		self.curr = self.file.read(1)
 		self.colNum += 1
 	def ahd(self):
-		nextChar = self.file.read(1)
-		self.file.seek(self.lastReadByte - 1, io.SEEK_SET)
-		return nextChar
+		return self.buf[self.lastReadByte]
 	def add(self, type, rawValue='', lineNum=-1, colNum=-1, calcInt=0, calcFlt=0.0, calcStr=[]):
 		if lineNum == -1: lineNum = self.lineNum
 		if colNum == -1: colNum = self.colNum
@@ -322,7 +318,8 @@ class tTokeniser(object):
 		self.stck = ''
 	def strt(self):
 		while True:
-			self.nxt()
+			try: self.nxt()
+			except IndexError: break
 			if self.curr == '': break
 			elif self.curr == '\n':
 				self.lineNum += 1
