@@ -156,7 +156,7 @@ class tTokeniser(object):
 				elif exponentMark == True and (peekedChar == '-' or peekedChar == '+'):
 					if expSign == True:
 						self.nxt()
-						print(f'ERR: Unexpected repeated sign in numeric literal exponent @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected repeated sign in numeric literal exponent at {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.nxt()
 					self.stck += self.curr
@@ -165,7 +165,7 @@ class tTokeniser(object):
 				elif peekedChar == '.':
 					if decimalPoint == True:
 						self.nxt()
-						print(f'ERR: Unexpected repeated decimal point in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected repeated decimal point in numeric literal at {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.nxt()
 					self.stck += self.curr
@@ -174,7 +174,7 @@ class tTokeniser(object):
 				elif peekedChar == 'E' or peekedChar == 'e':
 					if exponentMark == True:
 						self.nxt()
-						print(f'ERR: Unexpected repeated exponent in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected repeated exponent in numeric literal at {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.nxt()
 					self.stck += self.curr
@@ -183,7 +183,7 @@ class tTokeniser(object):
 					exponentMark = True
 				elif peekedChar.isalpha():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in numeric literal at {self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			if decimalPoint == True:
@@ -200,7 +200,7 @@ class tTokeniser(object):
 					peekedChar = self.ahd()
 				elif peekedChar.isalpha():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in hexadecimal numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in hexadecimal numeric literal at {self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stck[2:].split('_')), intBase)
@@ -213,7 +213,7 @@ class tTokeniser(object):
 					peekedChar = self.ahd()
 				elif peekedChar.isalnum():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in octal numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in octal numeric literal at {self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stck[2:].split('_')), intBase)
@@ -226,7 +226,7 @@ class tTokeniser(object):
 					peekedChar = self.ahd()
 				elif peekedChar.isalnum():
 					self.nxt()
-					print(f'ERR: Unexpected character \'{peekedChar}\' in binary numeric literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unexpected character \'{peekedChar}\' in binary numeric literal at {self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else: break
 			calcInt = int(''.join(self.stck[2:].split('_')), intBase)
@@ -283,8 +283,8 @@ class tTokeniser(object):
 		ahdChar = self.ahd()
 		while ahdChar != '"':
 			if ahdChar in ['\n', '\b', '\r', '\v', '\f']:
-				print(f'ERR: Unclosed string literal @ {self.fileName}:{lineNum}:{colNum}.')
-				print(f'\tGot \'{ahdChar}\' @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+				print(f'ERR: Unclosed string literal at {self.fileName}:{lineNum}:{colNum}.')
+				print(f'\tGot \'{ahdChar}\' at {self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
 			elif ahdChar == '\\':
 				self.nxt()
@@ -301,7 +301,7 @@ class tTokeniser(object):
 				elif ahdChar == 'b': calcStr.append(ord('\b'))
 				elif ahdChar == '\\':calcStr.append(ord('\\'))
 				else:
-					print(f'ERR: Unsupported escape character \'\\{self.curr}\' in string literal @ {self.fileName}:{lineNum}:{colNum}.')
+					print(f'ERR: Unsupported escape character \'\\{self.curr}\' in string literal at {self.fileName}:{lineNum}:{colNum}.')
 					exit(1)
 				self.nxt()
 				ahdChar = self.ahd()
@@ -454,7 +454,7 @@ class tTokeniser(object):
 					self.nxt()
 					ahdChar = self.ahd()
 					if ahdChar != '\'':
-						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered at {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					elif self.curr == 'n': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\n'))
 					elif self.curr == 't': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\t'))
@@ -467,26 +467,26 @@ class tTokeniser(object):
 					elif self.curr == 'b': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum, calcInt=ord('\b'))
 					elif self.curr == '\\': self.add(tTokeniser.tLex.eType.LITCHR, f'\'\\{self.curr}\'', lineNum, colNum,calcInt=ord('\\'))
 					else:
-						print(f'ERR: Unsupported escape character \'\\{self.curr}\' in character literal @ {self.fileName}:{lineNum}:{colNum}.')
+						print(f'ERR: Unsupported escape character \'\\{self.curr}\' in character literal at {self.fileName}:{lineNum}:{colNum}.')
 						exit(1)
 					self.nxt()
 				elif ahdChar.isspace() and not (ahdChar == ' ' or ahdChar == '\t'):
-					print(f'ERR: Unsupported whitespace encountered in character literal @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Unsupported whitespace encountered in character literal at {self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				elif ahdChar == '\'':
-					print(f'ERR: Empty char literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+					print(f'ERR: Empty char literal encountered at {self.fileName}:{self.lineNum}:{self.colNum}.')
 					exit(1)
 				else:
 					self.nxt()
 					ahdChar = self.ahd()
 					if ahdChar != '\'':
 						self.nxt()
-						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+						print(f'ERR: Unexpected character \'{ahdChar}\' in character literal encountered at {self.fileName}:{self.lineNum}:{self.colNum}.')
 						exit(1)
 					self.add(tTokeniser.tLex.eType.LITCHR, f'\'{self.curr}\'', lineNum, colNum, calcInt=ord(self.curr))
 					self.nxt()
 			else:
-				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered @ {self.fileName}:{self.lineNum}:{self.colNum}.')
+				print(f'ERR: Unknown lexeme \'{self.curr}\' encountered at {self.fileName}:{self.lineNum}:{self.colNum}.')
 				exit(1)
 		self.add(tTokeniser.tLex.eType.EOF)
 class tParser(object):
@@ -550,12 +550,12 @@ class tParser(object):
 			else: raise tParser.xNoMatch
 		def fnsh(self, lxm: tTokeniser.tLex):
 			if self.type == tParser.tPstFx.eType.CALL and lxm.type != tTokeniser.tLex.eType.RPAREN:
-				print(f'ERR: Unclosed parentheses during function call, first opened @ {self.lxm.fileName}:{self.lxm.lineNum}:{self.lxm.colNum}.')
-				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' @ {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
+				print(f'ERR: Unclosed parentheses during function call, first opened at {self.lxm.fileName}:{self.lxm.lineNum}:{self.lxm.colNum}.')
+				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' at {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
 				exit(1)
 			elif self.type == tParser.tPstFx.eType.ARR and lxm.type != tTokeniser.tLex.eType.RBRACK:
-				print(f'ERR: Unclosed brackets during array accessor, first opened @ {self.lxm.fileName}:{self.lxm.lineNum}:{self.lxm.colNum}.')
-				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' @ {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
+				print(f'ERR: Unclosed brackets during array accessor, first opened at {self.lxm.fileName}:{self.lxm.lineNum}:{self.lxm.colNum}.')
+				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' at {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
 				exit(1)
 		def print(self, indnt: int=0):
 			doIndnt(indnt)
@@ -761,8 +761,8 @@ class tParser(object):
 			self.chld: tParser.tStLst
 		def fnsh(self, lxm: tTokeniser.tLex):
 			if lxm.type != tTokeniser.tLex.eType.RBRACE:
-				print(f'ERR: Unclosed brace during block, first opened @ {self.lxm.fileName}:{self.lxm.lineNum}:{self.lxm.colNum}.')
-				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' @ {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
+				print(f'ERR: Unclosed brace during block, first opened at {self.lxm.fileName}:{self.lxm.lineNum}:{self.lxm.colNum}.')
+				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' at {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
 				exit(1)
 		def print(self, indnt: int=0):
 			doIndnt(indnt)
@@ -926,8 +926,8 @@ class tParser(object):
 			else: raise tParser.xNoMatch
 		def fnsh(self, lxm: tTokeniser.tLex):
 			if self.type == tParser.tMTyp.eType.ARR and lxm.type != tTokeniser.tLex.eType.RBRACK:
-				print(f'ERR: Unclosed square bracket started @ {self.lxm.fileName, self.lxm.lineNum, self.lxm.colNum}.')
-				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' @ {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
+				print(f'ERR: Unclosed square bracket started at {self.lxm.fileName, self.lxm.lineNum, self.lxm.colNum}.')
+				print(f'\tGot {str(lxm.type).rsplit('.', 1)[-1]} \'{lxm.rawValue}\' at {lxm.fileName}:{lxm.lineNum}:{lxm.colNum}.')
 				exit(1)
 		def print(self, indnt: int=0):
 			doIndnt(indnt)
@@ -1107,7 +1107,7 @@ class tParser(object):
 			if ret.type == tParser.tMTyp.eType.ARR:
 				try: ret.arrSz = self.expr()
 				except tParser.xNoMatch:
-					print(f'ERR: Expected expression within array type @ {self.curr().fileName, self.curr().lineNum, self.curr().colNum}.')
+					print(f'ERR: Expected expression within array type at {self.curr().fileName, self.curr().lineNum, self.curr().colNum}.')
 					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 					exit(1)
 				ret.fnsh(self.curr())
@@ -1131,23 +1131,23 @@ class tParser(object):
 				self.idx+=1
 				try: ret.args.append(self.mtyp())
 				except tParser.xNoMatch:
-					print(f'ERR: Invalid argument type during function pointer @ {self.curr().fileName, startLine, startCol}.')
-					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					print(f'ERR: Invalid argument type during function pointer at {self.curr().fileName, startLine, startCol}.')
+					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 					exit(1)
 		if self.curr().type != tTokeniser.tLex.eType.RPAREN:
-			print(f'ERR: Unclosed parenthesis started during function pointer @ {self.curr().fileName, startLine, startCol}.')
-			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unclosed parenthesis started during function pointer at {self.curr().fileName, startLine, startCol}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
 		self.idx+=1
 		if self.curr().type != tTokeniser.tLex.eType.COLON:
-			print(f'ERR: Expected colon for function pointer return type @ {self.curr().fileName, startLine, startCol}.')
-			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected colon for function pointer return type at {self.curr().fileName, startLine, startCol}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
 		self.idx+=1
 		try: ret.type = self.mtyp()
 		except tParser.xNoMatch:
-			print(f'ERR: Invalid return type during function pointer @ {self.curr().fileName, startLine, startCol}.')
-			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Invalid return type during function pointer at {self.curr().fileName, startLine, startCol}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
 		return ret
 	def grpng(self):
@@ -1157,8 +1157,8 @@ class tParser(object):
 		self.idx+=1
 		ret = self.expr()
 		if self.curr().type != tTokeniser.tLex.eType.RPAREN:
-			print(f'ERR: Unclosed parenthesis started @ {self.curr().fileName, startLine, startCol}.')
-			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unclosed parenthesis started at {self.curr().fileName, startLine, startCol}.')
+			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\' at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			exit(1)
 		self.idx+=1
 		return ret
@@ -1171,7 +1171,7 @@ class tParser(object):
 		self.idx+=1
 		try: ret.rhs = self.mtyp()
 		except tParser.xNoMatch:
-			print(f'ERR: Expected type name after cast @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected type name after cast at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		return ret
@@ -1200,7 +1200,7 @@ class tParser(object):
 					while True:
 						if self.curr().type == tTokeniser.tLex.eType.RPAREN: break
 						elif len(root.rhs) != 0 and self.curr().type != tTokeniser.tLex.eType.COMMA:
-							print(f'ERR: Expected comma @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum} to separate arguments of function call @ {self.curr().fileName}:{lineNum}:{colNum}.')
+							print(f'ERR: Expected comma at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum} to separate arguments of function call at {self.curr().fileName}:{lineNum}:{colNum}.')
 							print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 							exit(1)
 						elif self.curr().type == tTokeniser.tLex.eType.COMMA:
@@ -1314,7 +1314,7 @@ class tParser(object):
 				self.trim()
 				try: ret.vars.append(self.idnt())
 				except tParser.xNoMatch:
-					print(f'Expected identifier after comma in variable declaration list @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					print(f'Expected identifier after comma in variable declaration list at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 					exit(1)
 			if self.curr().type == tTokeniser.tLex.eType.COLON:
@@ -1323,7 +1323,7 @@ class tParser(object):
 				else:
 					try: ret.type = self.mtyp()
 					except tParser.xNoMatch:
-						print(f'ERR: Expected colon in variable declaration @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+						print(f'ERR: Expected colon in variable declaration at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 						print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 						exit(1)
 			else: raise tParser.xNoMatch
@@ -1331,7 +1331,7 @@ class tParser(object):
 				self.idx+=1
 				try: ret.val = self.expr()
 				except tParser.xNoMatch:
-					print(f'ERR: Expected expresion following assignment operator in variable definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+					print(f'ERR: Expected expresion following assignment operator in variable definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 					print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 					exit(1)
 			return ret
@@ -1342,13 +1342,13 @@ class tParser(object):
 		ret = tParser.tArg(self.curr())
 		ret.idnt = self.idnt()
 		if self.curr().type != tTokeniser.tLex.eType.COLON:
-			print(f'ERR: Expected colon in argument for function argument definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected colon in argument for function argument definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
 		try: ret.type = self.mtyp()
 		except tParser.xNoMatch:
-			print(f'ERR: Invalid argument type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Invalid argument type in function definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		return ret
@@ -1367,23 +1367,23 @@ class tParser(object):
 					self.trim()
 					try: ret.args.append(self.arg())
 					except tParser.xNoMatch:
-						print(f'ERR: Invalid identifier for argument name in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+						print(f'ERR: Invalid identifier for argument name in function definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 						print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 						exit(1)
 			except tParser.xNoMatch:pass
 			if self.curr().type != tTokeniser.tLex.eType.RPAREN:
-				print(f'ERR: Expected closing parenthesis during function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Expected closing parenthesis during function definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			self.idx+=1
 			if self.curr().type != tTokeniser.tLex.eType.COLON:
-				print(f'ERR: Expected colon for function return type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Expected colon for function return type in function definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			self.idx+=1
 			try: ret.type = self.mtyp()
 			except tParser.xNoMatch:
-				print(f'ERR: Invalid type for function return type in function definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Invalid type for function return type in function definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			self.trim() #TODO: Rollback trim if we don't get a function body
@@ -1419,13 +1419,13 @@ class tParser(object):
 			self.trim()
 			ret.idnts.append(self.idnt())
 		if self.curr().type != tTokeniser.tLex.eType.COLON:
-			print(f'ERR: Expected colon before type for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected colon before type for object field definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
 		try: ret.type = self.mtyp()
 		except tParser.xNoMatch:
-			print(f'ERR: Expected type name for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected type name for object field definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		return ret
@@ -1434,7 +1434,7 @@ class tParser(object):
 		self.idx+=1
 		try: ret.idnt = self.idnt()
 		except tParser.xNoMatch:
-			print(f'ERR: Expected identifier name for object definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected identifier name for object definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.trim()
@@ -1443,7 +1443,7 @@ class tParser(object):
 		self.trim()
 		try: ret.flds.append(self.dobja())
 		except tParser.xNoMatch:
-			print(f'ERR: Expected identifier name for object field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected identifier name for object field definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
@@ -1452,7 +1452,7 @@ class tParser(object):
 			except tParser.xNoMatch: break
 		self.trim()
 		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
-			print(f'ERR: Expected closing brace for object definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected closing brace for object definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
@@ -1461,13 +1461,13 @@ class tParser(object):
 		ret = tParser.tDUniA(self.curr())
 		ret.idnt = self.idnt()
 		if self.curr().type != tTokeniser.tLex.eType.COLON:
-			print(f'ERR: Expected colon before type for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected colon before type for union field definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
 		try: ret.type = self.mtyp()
 		except tParser.xNoMatch:
-			print(f'ERR: Expected type name for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected type name for union field definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		return ret
@@ -1476,7 +1476,7 @@ class tParser(object):
 		self.idx+=1
 		try: ret.idnt = self.idnt()
 		except tParser.xNoMatch:
-			print(f'ERR: Expected identifier name for union definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected identifier name for union definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.trim()
@@ -1485,7 +1485,7 @@ class tParser(object):
 		self.trim()
 		try: ret.flds.append(self.dobja())
 		except tParser.xNoMatch:
-			print(f'ERR: Expected identifier name for union field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected identifier name for union field definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
@@ -1494,7 +1494,7 @@ class tParser(object):
 			except tParser.xNoMatch: break
 		self.trim()
 		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
-			print(f'ERR: Expected closing brace for union definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected closing brace for union definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
@@ -1506,7 +1506,7 @@ class tParser(object):
 			self.idx+=1
 			try: ret.val = self.expr()
 			except tParser.xNoMatch:
-				print(f'ERR: Expected expression for enumeration value @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Expected expression for enumeration value at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 		return ret
@@ -1515,7 +1515,7 @@ class tParser(object):
 		self.idx+=1
 		try: ret.idnt = self.idnt()
 		except tParser.xNoMatch:
-			print(f'ERR: Expected identifier for enumeration name @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected identifier for enumeration name at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.trim()
@@ -1524,7 +1524,7 @@ class tParser(object):
 		self.trim()
 		try: ret.flds.append(self.dorda())
 		except tParser.xNoMatch:
-			print(f'ERR: Expected identifier name for enumeration field definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected identifier name for enumeration field definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		while self.curr().type == tTokeniser.tLex.eType.NEWLINE:
@@ -1533,7 +1533,7 @@ class tParser(object):
 			except tParser.xNoMatch: break
 		self.trim()
 		if self.curr().type != tTokeniser.tLex.eType.RBRACE:
-			print(f'ERR: Expected closing brace for enumeration definition @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected closing brace for enumeration definition at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
@@ -1585,14 +1585,14 @@ class tParser(object):
 	def cnd(self):
 		ret = tParser.tCnd(self.curr())
 		if ret.type != tParser.tCnd.eType.IF:
-			print(f'ERR: `elif` and `else` are not permitted before encountering an `if` @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: `elif` and `else` are not permitted before encountering an `if` at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		self.idx+=1
 		ret.cnd = self.expr()
 		retBdy = self.cndbdy()
 		if retBdy is None:
-			print(f'ERR: Expected body following `if` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected body following `if` conditional at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		ret.bdy = retBdy
@@ -1604,7 +1604,7 @@ class tParser(object):
 			chld.cnd = self.expr()
 			chldBdy = self.cndbdy()
 			if chldBdy is None:
-				print(f'ERR: Expected body following `elif` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Expected body following `elif` conditional at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			chld.bdy = chldBdy
@@ -1614,7 +1614,7 @@ class tParser(object):
 			self.idx+=1
 			elseBdy = self.cndbdy()
 			if elseBdy is None:
-				print(f'ERR: Expected body following `else` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Expected body following `else` conditional at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			ret.elseBdy = elseBdy
@@ -1625,7 +1625,7 @@ class tParser(object):
 		ret.cnd = self.expr()
 		retBdy = self.cndbdy()
 		if retBdy is None:
-			print(f'ERR: Expected body following `while` loop @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Expected body following `while` loop at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		ret.bdy = retBdy
@@ -1634,7 +1634,7 @@ class tParser(object):
 			self.idx+=1
 			elseBdy = self.cndbdy()
 			if elseBdy is None:
-				print(f'ERR: Expected body following `else` conditional @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Expected body following `else` conditional at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			ret.elseBdy = elseBdy
@@ -1652,7 +1652,7 @@ class tParser(object):
 		except tParser.xNoMatch:
 			try: ret.rhs = self.expr()
 			except tParser.xNoMatch:
-				print(f'ERR: Unexpected lexeme encountered following assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Unexpected lexeme encountered following assignment at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 		return ret
@@ -1669,7 +1669,7 @@ class tParser(object):
 		except tParser.xNoMatch:
 			try: ret.rhs = self.expr()
 			except tParser.xNoMatch:
-				print(f'ERR: Unexpected lxm encountered following compound assignment @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Unexpected lxm encountered following compound assignment at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 		return ret
@@ -1688,7 +1688,7 @@ class tParser(object):
 						except tParser.xNoMatch: ret.append(self.dord())
 			if self.curr().type == tTokeniser.tLex.eType.EOF: break
 			if self.curr().type != tTokeniser.tLex.eType.NEWLINE:
-				print(f'ERR: Expected newline @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+				print(f'ERR: Expected newline at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 				print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 				exit(1)
 			self.trim()
@@ -1696,11 +1696,11 @@ class tParser(object):
 	def run(self):
 		try: self.brnchs = self.prog()
 		except tParser.xNoMatch:
-			print(f'ERR: Unexpected lexeme encountered @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unexpected lexeme encountered at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 		if self.curr().type != tTokeniser.tLex.eType.EOF:
-			print(f'ERR: Unhandled lexemes, starting @ {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
+			print(f'ERR: Unhandled lexemes, starting at {self.curr().fileName}:{self.curr().lineNum}:{self.curr().colNum}.')
 			print(f'\tGot {str(self.curr().type).rsplit('.', 1)[-1]} \'{self.curr().rawValue}\'.')
 			exit(1)
 	def print(self):
@@ -1764,14 +1764,14 @@ class tScop(object):
 		for elem in brnchs:
 			if isinstance(elem, tParser.tFnc):
 				if self.isGlbl == False:
-					print(f'ERR: Function definitions are forbidden everywhere except in global scope @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+					print(f'ERR: Function definitions are forbidden everywhere except in global scope at {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
 					exit(1)
 				fnc = tScop.tFnc()
 				fnc.decled = True
 				if elem.bdy is not None:
 					if elem.idnt.rawValue in self.vars and self.vars[elem.idnt.rawValue].defed == True:
-						print(f'ERR: Redefinition of function \'{elem.idnt.rawValue}\' @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
-						print(f'\tFirst defined @ {self.vars[elem.idnt.rawValue].lxm.fileName}:{self.vars[elem.idnt.rawValue].lxm.lineNum}:{self.vars[elem.idnt.rawValue].lxm.colNum}.')
+						print(f'ERR: Redefinition of function \'{elem.idnt.rawValue}\' at {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+						print(f'\tFirst defined at {self.vars[elem.idnt.rawValue].lxm.fileName}:{self.vars[elem.idnt.rawValue].lxm.lineNum}:{self.vars[elem.idnt.rawValue].lxm.colNum}.')
 						exit(1)
 					fnc.defed = True
 					kid = tScop()
@@ -1792,9 +1792,9 @@ class tScop(object):
 					var.decled = True
 					if elem.val is not None: var.defed = True
 					if self.isvardecled(idnt.rawValue):
-						print(f'ERR: Redeclaration of variable \'{idnt.rawValue}\' @ {idnt.lxm.fileName}:{idnt.lxm.lineNum}:{idnt.lxm.colNum}.')
+						print(f'ERR: Redeclaration of variable \'{idnt.rawValue}\' at {idnt.lxm.fileName}:{idnt.lxm.lineNum}:{idnt.lxm.colNum}.')
 						var = self.getvar(idnt.rawValue)
-						try: print(f'\tFirst defined @ {var.lxm.fileName}:{var.lxm.lineNum}:{var.lxm.colNum}.')
+						try: print(f'\tFirst defined at {var.lxm.fileName}:{var.lxm.lineNum}:{var.lxm.colNum}.')
 						except AttributeError: print('\tAlready defined as function argument.')
 						exit(1)
 					var.lxm = idnt.lxm
@@ -1805,7 +1805,7 @@ class tScop(object):
 				kid.parse(elem.chld.kids)
 				self.kids.append(kid)
 			else:
-				print(f'ERR: Unexpected @ {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
+				print(f'ERR: Unexpected at {elem.lxm.fileName}:{elem.lxm.lineNum}:{elem.lxm.colNum}.')
 				exit(1)
 
 if __name__ == '__main__':
