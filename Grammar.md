@@ -34,8 +34,6 @@ expr => lgco
 
 rtrn => KWRET expr?
 
-dfer => KWLTR (expr | assgn | cssgn)
-
 cndbdy => NEWLINE\* (stmnt | blck)
 
 cnd => KWIF expr cndbdy (NEWLINE* KWELIF expr cndbdy)\* (NEWLINE* KWELSE cndbdy)?
@@ -50,7 +48,7 @@ var => IDENT (COMMA NEWLINE* IDENT)\* COLON ((mtyp (EQ expr)?) | (EQ expr))
 
 cntrl => KWBRK | KWCONT
 
-stmnt => (var | cssgn | assgn | expr | rtrn | dfer | blck | cntrl | cnd | loop)
+stmnt => (var | cssgn | assgn | expr | rtrn | blck | cntrl | cnd | loop)
 
 stlst => (stmnt (NEWLINE+ stmnt)\*)?
 

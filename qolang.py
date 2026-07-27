@@ -58,7 +58,7 @@ class tTokeniser(object):
 			KWAND=enum.auto()
 			KWOR=enum.auto()
 			KWRET=enum.auto()
-			KWLTR=enum.auto()
+			#KWLTR=enum.auto()
 			KWWHL=enum.auto()
 			KWBRK=enum.auto()
 			KWCONT=enum.auto()
@@ -245,7 +245,7 @@ class tTokeniser(object):
 		elif self.stck == 'elif': self.add(tTokeniser.tLex.eType.KWELIF, self.stck, lineNum, colNum)
 		elif self.stck == 'else': self.add(tTokeniser.tLex.eType.KWELSE, self.stck, lineNum, colNum)
 		elif self.stck == 'ret': self.add(tTokeniser.tLex.eType.KWRET, self.stck, lineNum, colNum)
-		elif self.stck == 'ltr': self.add(tTokeniser.tLex.eType.KWLTR, self.stck, lineNum, colNum)
+		#elif self.stck == 'ltr': self.add(tTokeniser.tLex.eType.KWLTR, self.stck, lineNum, colNum) # Maybe I'll add this back later.
 		elif self.stck == 'whl': self.add(tTokeniser.tLex.eType.KWWHL, self.stck, lineNum, colNum)
 		elif self.stck == 'brk': self.add(tTokeniser.tLex.eType.KWBRK, self.stck, lineNum, colNum)
 		elif self.stck == 'cont': self.add(tTokeniser.tLex.eType.KWCONT, self.stck, lineNum, colNum)
@@ -725,15 +725,15 @@ class tParser(object):
 			doIndnt(indnt)
 			print(str(type(self)).split('.')[-1][1:-2])
 			if self.chld is not None: self.chld.print(indnt+1)
-	class tDfer(tParserObj):
-		def __init__(self, lxm: tTokeniser.tLex):
-			self.lxm = lxm
-			self.chld: tParser.tParserObj
-			if lxm.type != tTokeniser.tLex.eType.KWLTR: raise tParser.xNoMatch
-		def print(self, indnt: int=0):
-			doIndnt(indnt)
-			print(str(type(self)).split('.')[-1][1:-2])
-			self.chld.print(indnt+1)
+	#class tDfer(tParserObj):
+	#	def __init__(self, lxm: tTokeniser.tLex):
+	#		self.lxm = lxm
+	#		self.chld: tParser.tParserObj
+	#		if lxm.type != tTokeniser.tLex.eType.KWLTR: raise tParser.xNoMatch
+	#	def print(self, indnt: int=0):
+	#		doIndnt(indnt)
+	#		print(str(type(self)).split('.')[-1][1:-2])
+	#		self.chld.print(indnt+1)
 	class tCntrl(tParserObj):
 		class eType(enum.Enum):
 			BRK=enum.auto()
@@ -1399,14 +1399,14 @@ class tParser(object):
 		try: ret.chld = self.expr()
 		except tParser.xNoMatch: ret.chld = None
 		return ret
-	def dfer(self):
-		ret = tParser.tDfer(self.curr())
-		self.idx+=1
-		try: ret.chld = self.cssgn()
-		except tParser.xNoMatch:
-			try: ret.chld = self.assgn()
-			except tParser.xNoMatch: ret.chld = self.expr()
-		return ret
+	#def dfer(self):
+	#	ret = tParser.tDfer(self.curr())
+	#	self.idx+=1
+	#	try: ret.chld = self.cssgn()
+	#	except tParser.xNoMatch:
+	#		try: ret.chld = self.assgn()
+	#		except tParser.xNoMatch: ret.chld = self.expr()
+	#	return ret
 	def cntrl(self):
 		ret = tParser.tCntrl(self.curr())
 		self.idx+=1
@@ -1544,7 +1544,7 @@ class tParser(object):
 			self.cssgn,
 			self.assgn,
 			self.expr,
-			self.dfer,
+			#self.dfer,
 			self.rtrn,
 			self.cntrl,
 			self.blck,
